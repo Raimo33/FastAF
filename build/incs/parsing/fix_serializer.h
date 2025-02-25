@@ -1,26 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   fix_serializer.h                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/02 15:34:10 by craimond          #+#    #+#             */
-/*   Updated: 2025/02/03 19:39:21 by craimond         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-//TODO esportare in una libreria, fare i test, benchmark, etc
-
 #ifndef FIX_SERIALIZER_H
 # define FIX_SERIALIZER_H
 
-# include <stdint.h>
-# include <stdbool.h>
-# include <immintrin.h>
-
-# include "extensions.h"
-# include "errors.h"
+# include <flashfix/flashfix.h>
 
 # define FIX_BEGINSTRING "8"
 # define FIX_BODYLENGTH "9"
@@ -51,26 +32,6 @@
 
 # define FIX_MSG_TYPE_LOGON "A"
 
-# define FIX_VERSION "FIX.4.4"
-# define FIX_MAX_FIELDS 64
-
-typedef struct ALIGNED(64)
-{
-  const char *tag;
-  uint16_t tag_len;
-  const char *value;
-  uint16_t value_len;
-} fix_field_t;
-
-typedef struct ALIGNED(64)
-{
-  fix_field_t fields[FIX_MAX_FIELDS];
-  uint8_t n_fields;
-} fix_message_t;
-
-HOT uint16_t serialize_fix_message(char *restrict buffer, const uint16_t buffer_size, const fix_message_t *restrict message);
-HOT uint16_t finalize_fix_message(char *restrict buffer, const uint16_t buffer_size, const uint16_t len);
-HOT bool is_full_fix_message(const char *restrict buffer, const uint16_t buffer_size, const uint16_t message_len);
-HOT uint16_t deserialize_fix_message(char *restrict buffer, const uint16_t buffer_size, fix_message_t *restrict message);
+bool is_full_fix_message(const char *restrict buffer, const uint32_t buffer_size, const uint32_t offset);
 
 #endif

@@ -126,19 +126,16 @@ static bool send_logon_query(fix_client_t *restrict client)
     char seq_num_str[16];
     const uint8_t seq_num_str_len = ultoa(client->msg_seq_num, seq_num_str);
 
-    const fix_message_t raw_data = {
-      .fields = {
-        {STR_AND_LEN(FIX_MSGTYPE),      STR_AND_LEN(FIX_MSG_TYPE_LOGON)},
-        {STR_AND_LEN(FIX_SENDERCOMPID), STR_AND_LEN(FIX_COMP_ID)},
-        {STR_AND_LEN(FIX_TARGETCOMPID), STR_AND_LEN("SPOT")},
-        {STR_AND_LEN(FIX_MSGSEQNUM),    seq_num_str, seq_num_str_len},
-        {STR_AND_LEN(FIX_SENDINGTIME),  timestamp_str, UTC_TIMESTAMP_SIZE},
-      },
+    const ff_message_t raw_data = {
+      .tags = {FIX_MSGTYPE, FIX_SENDERCOMPID, FIX_TARGETCOMPID, FIX_MSGSEQNUM, FIX_SENDINGTIME},
+      .values = {FIX_MSG_TYPE_LOGON, FIX_COMP_ID, "SPOT", seq_num_str, timestamp_str},
+      .tag_lens = {STR_LEN(FIX_MSGTYPE), STR_LEN(FIX_SENDERCOMPID), STR_LEN(FIX_TARGETCOMPID), STR_LEN(FIX_MSGSEQNUM), STR_LEN(FIX_SENDINGTIME)},
+      .value_lens = {STR_LEN(FIX_MSG_TYPE_LOGON), STR_LEN(FIX_COMP_ID), STR_LEN("SPOT"), seq_num_str_len, UTC_TIMESTAMP_SIZE},
       .n_fields = 5,
     };
 
     char serialized_data[1024];
-    uint16_t data_len = serialize_fix_message(serialized_data, sizeof(serialized_data), &raw_data);
+    uint16_t data_len = ff_serialize_raw(serialized_data, &raw_data);
     
     char signed_data[ED25519_SIGSIZE];
     sign_ed25519(client->keys->priv_key, serialized_data, data_len, signed_data);
@@ -149,26 +146,15 @@ static bool send_logon_query(fix_client_t *restrict client)
   
     char data_len_str[16];
     const uint8_t data_len_str_len = ultoa(data_len, data_len_str);
-  
-    const fix_message_t message = {
-      .fields = {
-        {STR_AND_LEN(FIX_MSGTYPE),         STR_AND_LEN(FIX_MSG_TYPE_LOGON)},
-        {STR_AND_LEN(FIX_SENDERCOMPID),    STR_AND_LEN(FIX_COMP_ID)},
-        {STR_AND_LEN(FIX_TARGETCOMPID),    STR_AND_LEN("SPOT")},
-        {STR_AND_LEN(FIX_MSGSEQNUM),       seq_num_str, seq_num_str_len},
-        {STR_AND_LEN(FIX_SENDINGTIME),     timestamp_str, UTC_TIMESTAMP_SIZE},
-        {STR_AND_LEN(FIX_ENCRYPTMETHOD),   STR_AND_LEN("0")},
-        {STR_AND_LEN(FIX_HEARTBTINT),      STR_AND_LEN(FIX_HEARTBEAT_INTERVAL)},
-        {STR_AND_LEN(FIX_RAWDATALENGTH),   data_len_str, data_len_str_len},
-        {STR_AND_LEN(FIX_RAWDATA),         encoded_data, data_len},
-        {STR_AND_LEN(FIX_RESETSEQNUMFLAG), STR_AND_LEN("Y")},
-        {STR_AND_LEN(FIX_USERNAME),        (char *)client->keys->api_key, API_KEY_SIZE},
-        {STR_AND_LEN(FIX_MESSAGEHANDLING), STR_AND_LEN("1")},
-        {STR_AND_LEN(FIX_RESPONSEMODE),    STR_AND_LEN("1")},
-      },
+
+    const ff_message_t message = {
+      .tags = {FIX_MSGTYPE, FIX_SENDERCOMPID, FIX_TARGETCOMPID, FIX_MSGSEQNUM, FIX_SENDINGTIME, FIX_ENCRYPTMETHOD, FIX_HEARTBTINT, FIX_RAWDATALENGTH, FIX_RAWDATA, FIX_RESETSEQNUMFLAG, FIX_USERNAME, FIX_MESSAGEHANDLING, FIX_RESPONSEMODE},
+      .values = {FIX_MSG_TYPE_LOGON, FIX_COMP_ID, "SPOT", seq_num_str, timestamp_str, "0", FIX_HEARTBEAT_INTERVAL, data_len_str, encoded_data, "Y", (char *)client->keys->api_key, "1", "1"},
+      .tag_lens = {STR_LEN(FIX_MSGTYPE), STR_LEN(FIX_SENDERCOMPID), STR_LEN(FIX_TARGETCOMPID), STR_LEN(FIX_MSGSEQNUM), STR_LEN(FIX_SENDINGTIME), STR_LEN(FIX_ENCRYPTMETHOD), STR_LEN(FIX_HEARTBTINT), STR_LEN(FIX_RAWDATALENGTH), data_len_str_len, data_len, STR_LEN(FIX_RESETSEQNUMFLAG), API_KEY_SIZE, STR_LEN(FIX_MESSAGEHANDLING), STR_LEN(FIX_RESPONSEMODE)},
+      .value_lens = {STR_LEN(FIX_MSG_TYPE_LOGON), STR_LEN(FIX_COMP_ID), STR_LEN("SPOT"), seq_num_str_len, UTC_TIMESTAMP_SIZE, STR_LEN("0"), STR_LEN(FIX_HEARTBEAT_INTERVAL), data_len_str_len, data_len, STR_LEN("Y"), API_KEY_SIZE, STR_LEN("1"), STR_LEN("1")},
       .n_fields = 13,
     };
-  
+
     client->msg_seq_num++;
     len = serialize_fix_message(client->write_buffer, FIX_WRITE_BUFFER_SIZE, &message);
     len = finalize_fix_message(client->write_buffer, FIX_WRITE_BUFFER_SIZE, len);

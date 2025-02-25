@@ -46,6 +46,7 @@ target_link_libraries(fastaf PRIVATE
   yyjson
   xxhash
   m
+  flashfix
 )
 
 set(VALGRIND_SUPP ${CMAKE_SOURCE_DIR}/valgrind.supp)

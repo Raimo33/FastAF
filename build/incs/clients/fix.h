@@ -47,7 +47,7 @@ typedef struct
   char *write_buffer;
   char *read_buffer;
   http_response_t http_response;
-  fix_message_t fix_message;
+  ff_message_t fix_message;
   uint32_t write_offset;
   uint32_t read_offset;
   uint64_t msg_seq_num;

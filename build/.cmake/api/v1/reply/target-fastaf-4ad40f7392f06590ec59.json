@@ -173,8 +173,7 @@
 				22,
 				23,
 				24,
-				25,
-				26
+				25
 			]
 		}
 	],
@@ -221,6 +220,11 @@
 				"backtrace" : 3,
 				"fragment" : "-lm",
 				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-lflashfix",
+				"role" : "libraries"
 			}
 		],
 		"language" : "C"
@@ -263,8 +267,7 @@
 				22,
 				23,
 				24,
-				25,
-				26
+				25
 			]
 		}
 	],
@@ -346,12 +349,6 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "srcs/parsing/decompression.c",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "srcs/parsing/fix_serializer.c",
 			"sourceGroupIndex" : 0
 		},
 		{

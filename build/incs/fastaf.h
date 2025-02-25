@@ -13,7 +13,6 @@
 #ifndef FASTAF_H
 # define FASTAF_H
 
-# include "arch_check.h"
 # include "logger.h"
 # include "errors.h"
 # include "signals.h"
@@ -39,5 +38,6 @@ typedef struct
 //https://developers.binance.com/docs/binance-spot-api-docs/faqs/spot_glossary
 
 //TODO SSL_shutdown() //attenzione al non-blocking
+//TODO ebpf
 
 #endif

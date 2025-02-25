@@ -24,6 +24,6 @@
 
 HOT bool try_ssl_send(SSL *restrict ssl, char *restrict buffer, const uint32_t len, uint32_t *offset);
 HOT bool try_ssl_recv_http(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, http_response_t *restrict http_response);
-HOT bool try_ssl_recv_fix(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, fix_message_t *restrict fix_message);
+HOT bool try_ssl_recv_fix(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, ff_message_t *restrict fix_message);
 
 #endif

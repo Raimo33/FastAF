@@ -171,7 +171,7 @@ bool is_full_http_response(const char *restrict buffer, const uint32_t buffer_si
   if (LIKELY(content_length))
   {
     const uint32_t headers_len = headers_end - buffer + STR_LEN("\r\n");
-    const uint32_t body_len = strtoul(content_length + STR_LEN("Content-Length:"), NULL, 10);
+    const uint32_t body_len = strtoul(content_length + STR_LEN("Content-Length:"), NULL, 10); //TODO non si puo fare affidamento sulla body len
     const uint32_t available_space = buffer_size - headers_len;
     fast_assert(body_len <= available_space, "Body size exceeds available space");
     return ((headers_len + body_len) == response_len);

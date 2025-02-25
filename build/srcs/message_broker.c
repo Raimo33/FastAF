@@ -43,7 +43,7 @@ bool try_ssl_recv_http(SSL *restrict ssl, char *restrict buffer, const uint32_t 
   return true;
 }
 
-bool try_ssl_recv_fix(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, fix_message_t *restrict fix_message)
+bool try_ssl_recv_fix(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, ff_message_t *restrict fix_message)
 {
   const uint32_t ret = SSL_read_p(ssl, buffer + *offset, buffer_size - *offset);
   if (UNLIKELY(ret <= 0))
@@ -53,7 +53,7 @@ bool try_ssl_recv_fix(SSL *restrict ssl, char *restrict buffer, const uint32_t b
   if (LIKELY(!is_full_fix_message(buffer, buffer_size, *offset)))
     return false;
 
-  const uint32_t bytes_deserialized = deserialize_fix_message(buffer, buffer_size, fix_message);
+  const uint32_t bytes_deserialized = ff_deserialize(buffer, buffer_size, fix_message);
   memmove(buffer, buffer + bytes_deserialized, *offset - bytes_deserialized);
   *offset -= bytes_deserialized;
   return true;

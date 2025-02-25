@@ -6,7 +6,7 @@
 /*   By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/17 19:45:40 by craimond          #+#    #+#             */
-/*   Updated: 2025/01/31 09:40:48 by craimond         ###   ########.fr       */
+/*   Updated: 2025/02/10 14:06:09 by craimond         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,17 @@
 # define FALLTHROUGH                __attribute__((fallthrough))
 # define COLD                       __attribute__((cold))
 # define HOT                        __attribute__((hot))
-# define CONST                      __attribute__((const))
-# define PURE                       __attribute__((pure))
+# define CONST                      __attribute__((const)) //TODO usare
+# define PURE                       __attribute__((pure)) //TODO usare
 # define UNUSED                     __attribute__((unused))
 # define PACKED                     __attribute__((packed))
 # define ALIGNED(x)                 __attribute__((aligned(x)))
-# define NORETURN                   __attribute__((noreturn))
+# define NORETURN                   __attribute__((noreturn)) //TODO usare
 # define ALWAYS_INLINE              __attribute__((always_inline))
 # define NO_INLINE                  __attribute__((noinline))
 # define FLATTEN                    __attribute__((flatten))
-# define MALLOC                     __attribute__((malloc))
-# define NONNULL(...)               __attribute__((nonnull(__VA_ARGS__)))
+# define MALLOC                     __attribute__((malloc)) //TODO usare
+# define NONNULL(...)               __attribute__((nonnull(__VA_ARGS__))) //TODO usare
 
 # define L0   0
 # define L1   1

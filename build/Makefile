@@ -467,30 +467,6 @@ srcs/parsing/decompression.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fastaf.dir/build.make CMakeFiles/fastaf.dir/srcs/parsing/decompression.c.s
 .PHONY : srcs/parsing/decompression.c.s
 
-srcs/parsing/fix_serializer.o: srcs/parsing/fix_serializer.c.o
-.PHONY : srcs/parsing/fix_serializer.o
-
-# target to build an object file
-srcs/parsing/fix_serializer.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fastaf.dir/build.make CMakeFiles/fastaf.dir/srcs/parsing/fix_serializer.c.o
-.PHONY : srcs/parsing/fix_serializer.c.o
-
-srcs/parsing/fix_serializer.i: srcs/parsing/fix_serializer.c.i
-.PHONY : srcs/parsing/fix_serializer.i
-
-# target to preprocess a source file
-srcs/parsing/fix_serializer.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fastaf.dir/build.make CMakeFiles/fastaf.dir/srcs/parsing/fix_serializer.c.i
-.PHONY : srcs/parsing/fix_serializer.c.i
-
-srcs/parsing/fix_serializer.s: srcs/parsing/fix_serializer.c.s
-.PHONY : srcs/parsing/fix_serializer.s
-
-# target to generate assembly for a file
-srcs/parsing/fix_serializer.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/fastaf.dir/build.make CMakeFiles/fastaf.dir/srcs/parsing/fix_serializer.c.s
-.PHONY : srcs/parsing/fix_serializer.c.s
-
 srcs/parsing/http_serializer.o: srcs/parsing/http_serializer.c.o
 .PHONY : srcs/parsing/http_serializer.o
 
@@ -853,9 +829,6 @@ help:
 	@echo "... srcs/parsing/decompression.o"
 	@echo "... srcs/parsing/decompression.i"
 	@echo "... srcs/parsing/decompression.s"
-	@echo "... srcs/parsing/fix_serializer.o"
-	@echo "... srcs/parsing/fix_serializer.i"
-	@echo "... srcs/parsing/fix_serializer.s"
 	@echo "... srcs/parsing/http_serializer.o"
 	@echo "... srcs/parsing/http_serializer.i"
 	@echo "... srcs/parsing/http_serializer.s"

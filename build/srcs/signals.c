@@ -24,7 +24,7 @@ uint16_t init_signals(void)
   return signalfd_p(-1, &mask, SFD_NONBLOCK);
 }
 
-void handle_signal(const uint8_t fd, UNUSED const uint32_t events, UNUSED void *data)
+void handle_signal(const int fd, UNUSED const uint32_t events, UNUSED void *data)
 {
   struct signalfd_siginfo info;
   read_p(fd, &info, sizeof(info));
@@ -40,7 +40,7 @@ void handle_signal(const uint8_t fd, UNUSED const uint32_t events, UNUSED void *
   UNREACHABLE;
 }
 
-void free_signals(const uint8_t fd)
+void free_signals(const int fd)
 {
   close(fd);
 }

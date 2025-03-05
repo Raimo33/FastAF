@@ -14,7 +14,7 @@
 
 # include <stdio.h> //TODO remove
 
-inline int32_t sigemptyset_p(sigset_t *set)
+inline int sigemptyset_p(sigset_t *set)
 {
   if (sigemptyset(set) == -1)
   {
@@ -24,7 +24,7 @@ inline int32_t sigemptyset_p(sigset_t *set)
   return 0;
 }
 
-inline int32_t sigaddset_p(sigset_t *set, int signum)
+inline int sigaddset_p(sigset_t *set, int signum)
 {
   if (sigaddset(set, signum) == -1)
   {
@@ -34,7 +34,7 @@ inline int32_t sigaddset_p(sigset_t *set, int signum)
   return 0;
 }
 
-inline int32_t sigprocmask_p(int how, const sigset_t *set, sigset_t *oldset)
+inline int sigprocmask_p(int how, const sigset_t *set, sigset_t *oldset)
 {
   if (sigprocmask(how, set, oldset) == -1)
   {

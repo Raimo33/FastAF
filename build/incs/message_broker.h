@@ -14,16 +14,13 @@
 # define MESSAGE_BROKER_H
 
 # include <stdint.h>
-# include <stdbool.h>
 # include <arpa/inet.h>
 
 # include "fast_ssl.h"
-# include "parsing/http_serializer.h"
-# include "parsing/fix_serializer.h"
 # include "extensions.h"
 
 HOT bool try_ssl_send(SSL *restrict ssl, char *restrict buffer, const uint32_t len, uint32_t *offset);
-HOT bool try_ssl_recv_http(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, http_response_t *restrict http_response);
-HOT bool try_ssl_recv_fix(SSL *restrict ssl, char *restrict buffer, const uint32_t buffer_size, uint32_t *offset, ff_message_t *restrict fix_message);
+HOT bool try_ssl_recv_http(http_client_t *client, http_response_t *restrict http_response);
+HOT bool try_ssl_recv_fix(fix_client_t *client, fix_message_t *restrict fix_message);
 
 #endif

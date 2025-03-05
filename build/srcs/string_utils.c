@@ -12,20 +12,6 @@
 
 #include "string_utils.h"
 
-HOT static inline uint64_t tolower8(uint64_t octets);
-
-void strtolower(char *str, uint16_t len)
-{
-  uint64_t *chunk = (uint64_t *)str;
-
-  for (; len >= 8; len -= 8, chunk++)
-    *chunk = tolower8(*chunk);
-
-  char *remaining = (char *)chunk;
-  for (; len; len--, remaining++)
-    *remaining += (*remaining >= 'A' && *remaining <= 'Z') * 32;
-}
-
 const char *get_timestamp_utc_str(void)
 {
   static time_t last_time;
@@ -106,15 +92,4 @@ uint8_t ultoa(uint64_t num, char *buffer)
   }
 
   return digits;
-}
-
-static inline uint64_t tolower8(uint64_t octets)
-{
-  const uint64_t all_bytes = 0x0101010101010101;
-  const uint64_t heptets = octets & (0x7F * all_bytes);
-  const uint64_t is_gt_Z = heptets + (0x7F - 'Z') * all_bytes;
-  const uint64_t is_ge_A = heptets + (0x80 - 'A') * all_bytes;
-  const uint64_t is_ascii = ~octets & (0x80 * all_bytes);
-  const uint64_t is_upper = is_ascii & (is_ge_A ^ is_gt_Z);
-  return (octets | (is_upper >> 2));
 }

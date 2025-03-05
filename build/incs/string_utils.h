@@ -14,7 +14,6 @@
 # define STRING_UTILS_H
 
 # include <stdint.h>
-# include <stdbool.h>
 # include <time.h>
 
 # include "primitives/time_primitives.h"

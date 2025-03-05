@@ -1,26 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   system_tweaks.h                                    :+:      :+:    :+:   */
+/*   decompression.h                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: craimond <claudio.raimondi@pm.me>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/05 16:09:14 by craimond          #+#    #+#             */
-/*   Updated: 2025/02/06 10:27:35 by craimond         ###   ########.fr       */
+/*   Created: 2025/01/31 17:15:24 by craimond          #+#    #+#             */
+/*   Updated: 2025/02/05 18:19:37 by craimond         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SYSTEM_TWEAKS_H
-# define SYSTEM_TWEAKS_H
+#ifndef DECOMPRESSION_H
+# define DECOMPRESSION_H
 
+# include <zlib.h>
 # include <stdint.h>
-# include <sys/resource.h>
 
-# include "primitives/sys_primitives.h"
+# include <unistd.h>
+# include <fcntl.h>
+
 # include "extensions.h"
 
-# define MAX_FDS 32
+# define PIPE_BUF_SIZE _PC_PIPE_BUF
 
-COLD void set_fd_limit(const uint16_t limit);
+HOT void gzip_decompress_to_file(uint8_t *input, const uint32_t input_len, int fd);
 
 #endif

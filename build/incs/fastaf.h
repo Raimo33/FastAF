@@ -13,7 +13,6 @@
 #ifndef FASTAF_H
 # define FASTAF_H
 
-# include "logger.h"
 # include "errors.h"
 # include "signals.h"
 # include "clients/fix.h"
@@ -28,10 +27,9 @@ typedef struct
 {
   keys_t keys;
   SSL_CTX *ssl_ctx;
-  uint8_t epoll_fd;
+  int epoll_fd;
   clients_t clients;
-  uint8_t log_fd;
-  uint8_t sig_fd;
+  int sig_fd;
   graph_t graph;
 } app_resources_t;
 

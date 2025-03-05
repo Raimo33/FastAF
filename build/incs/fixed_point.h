@@ -14,7 +14,7 @@
 # define FIXED_POINT_H
 
 # include <stdint.h>
-# include <stdbool.h>
+
 # include <math.h>
 # include <limits.h>
 

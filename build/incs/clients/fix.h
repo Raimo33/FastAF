@@ -40,7 +40,7 @@
 
 typedef struct
 {
-  uint16_t sock_fd;
+  int sock_fd;
   struct sockaddr_in addr;
   SSL *ssl;
   keys_t *keys;
@@ -55,9 +55,9 @@ typedef struct
 } fix_client_t;
 
 COLD void init_fix(fix_client_t *restrict client, keys_t *restrict keys, SSL_CTX *restrict ssl_ctx);
-HOT void handle_fix_connection(const uint8_t fd, const uint32_t events, void *data);
-HOT void handle_fix_setup(const uint8_t fd, const uint32_t events, void *data);
-HOT void handle_fix_trading(const uint8_t fd, const uint32_t events, void *data);
+HOT void handle_fix_connection(const int fd, const uint32_t events, void *data);
+HOT void handle_fix_setup(const int fd, const uint32_t events, void *data);
+HOT void handle_fix_trading(const int fd, const uint32_t events, void *data);
 COLD void free_fix(fix_client_t *restrict client);
 
 #endif

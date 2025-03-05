@@ -16,7 +16,6 @@
 # include <stdint.h>
 
 # include "extensions.h"
-# include "logger.h"
 # include "errno.h"
 # include "stdlib.h"
 # include "sys/wait.h"

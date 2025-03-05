@@ -16,9 +16,9 @@ HandlerEntry handlers[MAX_FDS] = {0};
 
 HOT static inline uint8_t get_connected_clients(const clients_t *restrict clients);
 
-uint8_t init_event_loop(clients_t *restrict clients, const uint8_t log_fd, const uint8_t signal_fd)
+int init_event_loop(clients_t *restrict clients, const int signal_fd)
 {
-  const uint8_t epoll_fd = epoll_create1_p(0);
+  const int epoll_fd = epoll_create1_p(0);
 
   epoll_ctl_p(epoll_fd, EPOLL_CTL_ADD, signal_fd, &(struct epoll_event) {
     .events = SIGNAL_EVENTS,
@@ -36,11 +36,6 @@ uint8_t init_event_loop(clients_t *restrict clients, const uint8_t log_fd, const
   epoll_ctl_p(epoll_fd, EPOLL_CTL_ADD, clients->http.sock_fd, &(struct epoll_event) {
     .events = TCP_EVENTS,
     .data = { .fd = clients->http.sock_fd }
-  });
-
-  epoll_ctl_p(epoll_fd, EPOLL_CTL_ADD, log_fd, &(struct epoll_event) {
-    .events = LOG_EVENTS,
-    .data = { .fd = log_fd }
   });
 
   return epoll_fd;
@@ -85,22 +80,21 @@ void resolve_domains(clients_t *restrict clients)
   freeaddrinfo(rest_request.ar_result);
 }
 
-void connect_clients(const uint8_t epoll_fd, clients_t *restrict clients, const uint8_t log_fd, const uint8_t signal_fd)
+void connect_clients(const int epoll_fd, clients_t *restrict clients, const int signal_fd)
 {
   struct epoll_event events[MAX_EVENTS] ALIGNED(64) = {0};
   struct epoll_event *event;
   uint8_t n;
-  uint8_t event_fd;
+  int event_fd;
 
   handlers[signal_fd]             = (HandlerEntry){ handle_signal, NULL };
   handlers[clients->ws.sock_fd]   = (HandlerEntry){ handle_ws_connection, &clients->ws };
   handlers[clients->fix.sock_fd]  = (HandlerEntry){ handle_fix_connection, &clients->fix };
   handlers[clients->http.sock_fd] = (HandlerEntry){ handle_http_connection, &clients->http };
-  handlers[log_fd]                = (HandlerEntry){ handle_logs, NULL };
 
-  connect_p(clients->ws.sock_fd, (struct sockaddr *)&clients->ws.addr, sizeof(clients->ws.addr));
-  connect_p(clients->fix.sock_fd, (struct sockaddr *)&clients->fix.addr, sizeof(clients->fix.addr));
-  connect_p(clients->http.sock_fd, (struct sockaddr *)&clients->http.addr, sizeof(clients->http.addr));
+  connect_p(clients->ws.sock_fd, (struct sockaddr *)&clients->ws.addr, sizeof(struct sockaddr_in));
+  connect_p(clients->fix.sock_fd, (struct sockaddr *)&clients->fix.addr, sizeof(struct sockaddr_in));
+  connect_p(clients->http.sock_fd, (struct sockaddr *)&clients->http.addr, sizeof(struct sockaddr_in));
 
   while (LIKELY(get_connected_clients(clients) < 3))
   {
@@ -113,20 +107,18 @@ void connect_clients(const uint8_t epoll_fd, clients_t *restrict clients, const 
   }
 }
 
-void setup_trading(const uint8_t epoll_fd, clients_t *restrict clients, const uint8_t log_fd, const uint8_t signal_fd)
+void setup_trading(const int epoll_fd, clients_t *restrict clients, const int signal_fd)
 {
   (void)epoll_fd;
   (void)clients;
-  (void)log_fd;
   (void)signal_fd;
   //TODO fetches exchange info, fetches user info, fills graph and other
 }
 
-void trade(const uint8_t epoll_fd, clients_t *restrict clients, const uint8_t log_fd, const uint8_t signal_fd)
+void trade(const int epoll_fd, clients_t *restrict clients, const int signal_fd)
 {
   (void)epoll_fd;
   (void)clients;
-  (void)log_fd;
   (void)signal_fd;
   //TODO: updates graph with live ws data, sends fix orders, heartbeats, periodical checks with http
 }
@@ -136,7 +128,7 @@ static inline uint8_t get_connected_clients(const clients_t *restrict clients)
   return (clients->ws.status >= CONNECTED) + (clients->fix.status >= CONNECTED) + (clients->http.status >= CONNECTED);
 }
 
-void free_event_loop(const uint8_t epoll_fd)
+void free_event_loop(const int epoll_fd)
 {
   close(epoll_fd);
 }

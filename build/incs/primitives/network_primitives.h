@@ -19,7 +19,7 @@
 # include "extensions.h"
 # include "errors.h"
 
-COLD extern inline int32_t getaddrinfo_a_p(int32_t mode, struct gaicb *list[], int32_t ent, struct sigevent *sig);
-COLD extern inline int32_t connect_p(int32_t sockfd, const struct sockaddr *addr, socklen_t addrlen);
+COLD extern inline int getaddrinfo_a_p(int mode, struct gaicb *list[], int ent, struct sigevent *sig);
+COLD extern inline int connect_p(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 #endif

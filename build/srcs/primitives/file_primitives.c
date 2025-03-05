@@ -14,9 +14,9 @@
 
 # include <stdio.h> //TODO remove
 
-inline int32_t dup_p(int32_t oldfd)
+inline int dup_p(int oldfd)
 {
-  const int32_t newfd = dup(oldfd);
+  const int newfd = dup(oldfd);
   if (newfd == -1)
   {
     printf("DEB DUP ERROR\n");
@@ -25,9 +25,9 @@ inline int32_t dup_p(int32_t oldfd)
   return newfd;
 }
 
-inline int32_t fcntl_p(int32_t fd, int32_t cmd, int32_t arg)
+inline int fcntl_p(int fd, int cmd, int arg)
 {
-  const int32_t ret = fcntl(fd, cmd, arg);
+  const int ret = fcntl(fd, cmd, arg);
   if (ret == -1)
   {
     printf("DEB FCNTL ERROR\n");
@@ -36,9 +36,9 @@ inline int32_t fcntl_p(int32_t fd, int32_t cmd, int32_t arg)
   return ret;
 }
 
-inline int32_t socket_p(int32_t domain, int32_t type, int32_t protocol)
+inline int socket_p(int domain, int type, int protocol)
 {
-  const int32_t fd = socket(domain, type, protocol);
+  const int fd = socket(domain, type, protocol);
   if (fd == -1)
   {
     printf("DEB SOCKET ERROR\n");
@@ -47,7 +47,7 @@ inline int32_t socket_p(int32_t domain, int32_t type, int32_t protocol)
   return fd;
 }
 
-inline int32_t setsockopt_p(int32_t fd, int32_t level, int32_t optname, const void *optval, socklen_t optlen)
+inline int setsockopt_p(int fd, int level, int optname, const void *optval, socklen_t optlen)
 {
   if (setsockopt(fd, level, optname, optval, optlen) == -1)
   {
@@ -57,9 +57,9 @@ inline int32_t setsockopt_p(int32_t fd, int32_t level, int32_t optname, const vo
   return 0;
 }
 
-inline int32_t epoll_create1_p(int32_t flags)
+inline int epoll_create1_p(int flags)
 {
-  const int32_t fd = epoll_create1(flags);
+  const int fd = epoll_create1(flags);
   if (fd == -1)
   {
     printf("DEB EPOLL_CREATE1 ERROR\n");
@@ -68,7 +68,7 @@ inline int32_t epoll_create1_p(int32_t flags)
   return fd;
 }
 
-inline int32_t epoll_ctl_p(int32_t epfd, int32_t op, int32_t fd, struct epoll_event *event)
+inline int epoll_ctl_p(int epfd, int op, int fd, struct epoll_event *event)
 {
   if (epoll_ctl(epfd, op, fd, event) == -1)
   {
@@ -78,9 +78,9 @@ inline int32_t epoll_ctl_p(int32_t epfd, int32_t op, int32_t fd, struct epoll_ev
   return 0;
 }
 
-inline int32_t epoll_wait_p(int32_t epfd, struct epoll_event *events, int32_t maxevents, int32_t timeout)
+inline int epoll_wait_p(int epfd, struct epoll_event *events, int maxevents, int timeout)
 {
-  const int32_t ret = epoll_wait(epfd, events, maxevents, timeout);
+  const int ret = epoll_wait(epfd, events, maxevents, timeout);
   if (ret == -1)
   {
     printf("DEB EPOLL_WAIT ERROR\n");
@@ -89,9 +89,9 @@ inline int32_t epoll_wait_p(int32_t epfd, struct epoll_event *events, int32_t ma
   return ret;
 }
 
-inline int32_t writev_p(int32_t fd, const struct iovec *iov, int32_t iovcnt)
+inline int writev_p(int fd, const struct iovec *iov, int iovcnt)
 {
-  const int32_t ret = writev(fd, iov, iovcnt);
+  const int ret = writev(fd, iov, iovcnt);
   if (ret == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
   {
     printf("DEB WRITEV ERROR\n");
@@ -100,9 +100,9 @@ inline int32_t writev_p(int32_t fd, const struct iovec *iov, int32_t iovcnt)
   return ret;
 }
 
-inline int32_t read_p(int32_t fd, void *buf, size_t count)
+inline int read_p(int fd, void *buf, size_t count)
 {
-  const int32_t ret = read(fd, buf, count);
+  const int ret = read(fd, buf, count);
   if (ret == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
   {
     printf("DEB READ ERROR\n");
@@ -111,7 +111,7 @@ inline int32_t read_p(int32_t fd, void *buf, size_t count)
   return ret;
 }
 
-inline FILE *fdopen_p(const int32_t fd, const char *mode)
+inline FILE *fdopen_p(const int fd, const char *mode)
 {
   FILE *restrict ret = fdopen(fd, mode);
   if (ret == NULL)

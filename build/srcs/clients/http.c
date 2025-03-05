@@ -19,7 +19,7 @@ COLD static void process_info_response(char *body, const uint32_t body_len);
 void init_http(http_client_t *restrict client, keys_t *restrict keys, SSL_CTX *restrict ssl_ctx)
 {
 
-  const uint8_t fd = socket_p(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+  const int fd = socket_p(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
   setsockopt_p(fd, IPPROTO_TCP, TCP_FASTOPEN, &(int32_t){5}, sizeof(int32_t));
   setsockopt_p(fd, IPPROTO_TCP, TCP_NODELAY, &(int32_t){1}, sizeof(int32_t));
   setsockopt_p(fd, SOL_SOCKET, SO_KEEPALIVE, &(int32_t){1}, sizeof(int32_t));
@@ -40,7 +40,7 @@ void init_http(http_client_t *restrict client, keys_t *restrict keys, SSL_CTX *r
   };
 }
 
-void handle_http_connection(UNUSED const uint8_t fd, const uint32_t events, void *data)
+void handle_http_connection(UNUSED const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {&&ssl_handshake, &&complete};
   static uint8_t sequence = 0;
@@ -53,7 +53,7 @@ void handle_http_connection(UNUSED const uint8_t fd, const uint32_t events, void
   goto *states[sequence];
 
 ssl_handshake:
-  log_msg(STR_AND_LEN("Performing SSL handshake"));
+  printf("Performing SSL handshake\n");
   if (!SSL_connect_p(client->ssl))
     return;
   sequence++;
@@ -62,7 +62,7 @@ complete:
   client->status = CONNECTED;
 }
 
-void handle_http_setup(const uint8_t fd, const uint32_t events, void *data)
+void handle_http_setup(const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {&&info_query, &&info_response, &&complete};
   static uint8_t sequence = 0;
@@ -75,13 +75,13 @@ void handle_http_setup(const uint8_t fd, const uint32_t events, void *data)
   goto *states[sequence];
 
 info_query:
-  log_msg(STR_AND_LEN("Querying Exchange info"));
+  printf("Querying Exchange info\n");
   if (!send_info_query(client))
     return;
   sequence++;
 
 info_response:
-  log_msg(STR_AND_LEN("Received Exchange info"));
+  printf("Received Exchange info\n");
   if (!receive_info_response(client))
     return;
   sequence++;
@@ -93,7 +93,7 @@ complete:
   client->status = TRADING;
 }
 
-void handle_http_trading(const uint8_t fd, const uint32_t events, void *data)
+void handle_http_trading(const int fd, const uint32_t events, void *data)
 {
   //TODO eventuali chiamate di http durante il trading
   (void)fd;
@@ -132,22 +132,15 @@ static bool send_info_query(http_client_t *restrict client)
 
 static bool receive_info_response(http_client_t *restrict client)
 {
-  static const uint32_t info_response_size = 262144 * sizeof(char);
-  static bool initialized;
+  //TODO don't use the normal buffer, use a dedicated one for this response. (on the stack)
 
-  if (!initialized)
-  {
-    client->read_buffer = realloc_p(client->read_buffer, info_response_size);
-    initialized = true;
-  }
-
-  if (UNLIKELY(!try_ssl_recv_http(client->ssl, client->read_buffer, info_response_size, &client->read_offset, &client->http_response)))
+  if (UNLIKELY(!try_ssl_recv_http();
     return false;
 
   const http_response_t *restrict response = &client->http_response;
   fast_assert(response->status_code == 200, "Exchange info query failed: invalid status code");
   
-  const header_entry_t *restrict content_encoding = header_map_get(&response->headers, STR_AND_LEN("content-encoding"));
+  const header_entry_t *restrict content_encoding = header_map_get(&response->headers, STR_AND_LEN("content-encoding\n");
   fast_assert(content_encoding, "Exchange info query failed: missing content encoding header");
   fast_assert(!memcmp(content_encoding->value, STR_AND_LEN("gzip")), "Exchange info query failed: invalid content encoding");
   fast_assert(response->body, "Exchange info query failed: missing body");

@@ -14,9 +14,9 @@
 
 # include <stdio.h> //TODO remove
 
-inline int32_t getaddrinfo_a_p(int32_t mode, struct gaicb *list[], int32_t ent, struct sigevent *sig)
+inline int getaddrinfo_a_p(int mode, struct gaicb *list[], int ent, struct sigevent *sig)
 {
-  int32_t ret = getaddrinfo_a(mode, list, ent, sig);
+  int ret = getaddrinfo_a(mode, list, ent, sig);
   if (ret != 0)
   {
     printf("DEB GETADDRINFO_A ERROR\n");
@@ -25,9 +25,9 @@ inline int32_t getaddrinfo_a_p(int32_t mode, struct gaicb *list[], int32_t ent, 
   return ret;
 }
 
-inline int32_t connect_p(int32_t sockfd, const struct sockaddr *addr, socklen_t addrlen)
+inline int connect_p(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-  int32_t ret = connect(sockfd, addr, addrlen);
+  int ret = connect(sockfd, addr, addrlen);
   if (ret == -1 && errno != EAGAIN && errno != EINPROGRESS)
   {
     printf("DEB CONNECT ERROR\n");

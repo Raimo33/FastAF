@@ -30,7 +30,7 @@ SSL_CTX *init_ssl(void)
   return ctx;
 }
 
-SSL *init_ssl_socket(const uint8_t fd, SSL_CTX *restrict ctx, const char *restrict host)
+SSL *init_ssl_socket(const int fd, SSL_CTX *restrict ctx, const char *restrict host)
 {
   SSL *ssl = SSL_new_p(ctx);
   SSL_set_fd_p(ssl, fd);

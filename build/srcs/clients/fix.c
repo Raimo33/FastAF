@@ -19,7 +19,7 @@ COLD static bool receive_limits_response(fix_client_t *restrict client);
 
 void init_fix(fix_client_t *restrict client, keys_t *restrict keys, SSL_CTX *restrict ssl_ctx)
 {
-  const uint8_t fd = socket_p(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+  const int fd = socket_p(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
   setsockopt_p(fd, IPPROTO_TCP, TCP_FASTOPEN, &(int32_t){5}, sizeof(int32_t));
   setsockopt_p(fd, IPPROTO_TCP, TCP_NODELAY, &(int32_t){1}, sizeof(int32_t));
   setsockopt_p(fd, SOL_SOCKET, SO_KEEPALIVE, &(int32_t){1}, sizeof(int32_t));
@@ -42,7 +42,7 @@ void init_fix(fix_client_t *restrict client, keys_t *restrict keys, SSL_CTX *res
   };
 }
 
-void handle_fix_connection(UNUSED const uint8_t fd, const uint32_t events, void *data)
+void handle_fix_connection(UNUSED const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {&&ssl_handshake, &&logon_query, &&logon_response, &&complete};
   static uint8_t sequence = 0;
@@ -55,19 +55,19 @@ void handle_fix_connection(UNUSED const uint8_t fd, const uint32_t events, void 
   goto *states[sequence];
 
 ssl_handshake:
-  log_msg(STR_AND_LEN("Performing SSL handshake"));
+  printf("Performing SSL handshake\n");
   if (!SSL_connect_p(client->ssl))
     return;
   sequence++;
 
 logon_query:
-  log_msg(STR_AND_LEN("Sending logon query"));
+  printf("Sending logon query\n");
   if (!send_logon_query(client))
     return;
   sequence++;
 
 logon_response:
-  log_msg(STR_AND_LEN("Receiving logon response"));
+  printf("Receiving logon response\n");
   if (!receive_logon_response(client))
     return;
   sequence++;
@@ -76,7 +76,7 @@ complete:
   client->status = CONNECTED;
 }
 
-void handle_fix_setup(const uint8_t fd, const uint32_t events, void *data)
+void handle_fix_setup(const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {&&limits_query, &&limits_response, &&complete};
   static uint8_t sequence = 0;
@@ -89,13 +89,13 @@ void handle_fix_setup(const uint8_t fd, const uint32_t events, void *data)
   goto *states[sequence];
 
 limits_query:
-  log_msg(STR_AND_LEN("Sending limits query"));
+  printf("Sending limits query\n");
   if (!send_limits_query(client))
     return;
   sequence++;
 
 limits_response:
-  log_msg(STR_AND_LEN("Receiving limits response"));
+  printf("Receiving limits response\n");
   if (!receive_limits_response(client)) //TODO salvare i limiti nella struttura client, ogni client ha i suoi limiti
     return;
   sequence++;
@@ -106,7 +106,7 @@ complete:
   client->status = TRADING;
 }
 
-void handle_fix_trading(const uint8_t fd, const uint32_t events, void *data)
+void handle_fix_trading(const int fd, const uint32_t events, void *data)
 {
   //TODO submit di ordini
   (void)fd;

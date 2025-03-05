@@ -17,7 +17,7 @@ COLD static bool receive_upgrade_response(ws_client_t *restrict client);
 
 void init_ws(ws_client_t *restrict client, SSL_CTX *restrict ssl_ctx)
 {
-  const uint8_t fd = socket_p(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+  const int fd = socket_p(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
   setsockopt_p(fd, IPPROTO_TCP, TCP_FASTOPEN, &(int32_t){5}, sizeof(int32_t));
   setsockopt_p(fd, IPPROTO_TCP, TCP_NODELAY, &(int32_t){1}, sizeof(int32_t));
   setsockopt_p(fd, SOL_SOCKET, SO_KEEPALIVE, &(int32_t){1}, sizeof(int32_t));
@@ -38,7 +38,7 @@ void init_ws(ws_client_t *restrict client, SSL_CTX *restrict ssl_ctx)
   };
 }
 
-void handle_ws_connection(UNUSED const uint8_t fd, const uint32_t events, void *data)
+void handle_ws_connection(UNUSED const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {&&ssl_handshake, &&upgrade_query, &&upgrade_response, &&complete};
   static uint8_t sequence = 0;
@@ -51,19 +51,19 @@ void handle_ws_connection(UNUSED const uint8_t fd, const uint32_t events, void *
   goto *states[sequence];
 
 ssl_handshake:
-  log_msg(STR_AND_LEN("Performing SSL handshake"));
+  printf("Performing SSL handshake\n");
   if (!SSL_connect_p(client->ssl))
     return;
   sequence++;
 
 upgrade_query:
-  log_msg(STR_AND_LEN("Sending Websocket upgrade query"));
+  printf("Sending Websocket upgrade query\n");
   if (!send_upgrade_query(client))
     return;
   sequence++;
 
 upgrade_response:
-  log_msg(STR_AND_LEN("Receiving Websocket upgrade response"));
+  printf("Receiving Websocket upgrade response\n");
   if (!receive_upgrade_response(client))
     return;
   sequence++;
@@ -72,7 +72,7 @@ complete:
   client->status = CONNECTED;
 }
 
-void handle_ws_setup(const uint8_t fd, const uint32_t events, void *data)
+void handle_ws_setup(const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {};
   static uint8_t sequence = 0;
@@ -89,7 +89,7 @@ void handle_ws_setup(const uint8_t fd, const uint32_t events, void *data)
   // client->status = TRADING;
 }
 
-void handle_ws_trading(const uint8_t fd, const uint32_t events, void *data)
+void handle_ws_trading(const int fd, const uint32_t events, void *data)
 {
   static void *restrict states[] = {};
   static uint8_t sequence = 0;
@@ -145,7 +145,7 @@ static bool receive_upgrade_response(ws_client_t *restrict client)
   fast_assert(response->status_code == 101, "Websocket upgrade failed: invalid status code");
   fast_assert(response->headers.n_entries >= 3, "Websocket upgrade failed: missing response headers");
 
-  const header_entry_t *accept_header = header_map_get(&response->headers, STR_AND_LEN("sec-websocket-accept"));
+  const header_entry_t *accept_header = header_map_get(&response->headers, STR_AND_LEN("sec-websocket-accept\n");
   fast_assert(accept_header, "Websocket upgrade failed: missing accept header");
 
   if (verify_ws_key((const uint8_t *)client->conn_key, STR_LEN(client->conn_key), (const uint8_t *)accept_header->value, accept_header->value_len) == false)

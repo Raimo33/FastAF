@@ -21,7 +21,6 @@
 # include <netdb.h>
 
 # include "fast_ssl.h"
-# include "parsing/http_serializer.h"
 # include "message_broker.h"
 
 typedef enum: uint8_t {DISCONNECTED, CONNECTED, TRADING} client_status_t;

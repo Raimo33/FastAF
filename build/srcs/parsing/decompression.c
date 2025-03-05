@@ -14,7 +14,7 @@
 
 //https://www.zlib.net/manual.html#Stream
 
-void gzip_decompress_to_file(uint8_t *input, const uint32_t input_len, uint8_t fd)
+void gzip_decompress_to_file(uint8_t *input, const uint32_t input_len, int fd)
 {
   z_stream strm = {
     .zalloc = Z_NULL,

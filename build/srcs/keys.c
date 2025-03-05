@@ -25,8 +25,6 @@ void init_keys(keys_t *restrict keys)
 
 void sign_ed25519(EVP_PKEY *key, const char *data, const uint16_t data_len, char *restrict buffer)
 {
-  fast_assert(key && data && buffer, "Unexpected NULL pointer");
-
   EVP_MD_CTX *ctx = EVP_MD_CTX_new();
   EVP_DigestSignInit_p(ctx, NULL, NULL, NULL, key);
 
@@ -38,7 +36,6 @@ void sign_ed25519(EVP_PKEY *key, const char *data, const uint16_t data_len, char
 
 void generate_ws_key(char *restrict buffer, const uint8_t buffer_size)
 {
-  fast_assert(buffer, "Unexpected NULL pointer");
   fast_assert(buffer_size >= BASE64_ENCODED_SIZE(WS_KEY_SIZE) + 1, "Buffer too small for encoding");
 
   uint8_t rand_bytes[WS_KEY_SIZE];
@@ -49,7 +46,6 @@ void generate_ws_key(char *restrict buffer, const uint8_t buffer_size)
 
 bool verify_ws_key(const uint8_t *restrict key, const uint8_t key_len, const uint8_t *restrict accept, const uint16_t accept_len)
 {
-  fast_assert(key && accept, "Unexpected NULL pointer");
   fast_assert(key_len == BASE64_ENCODED_SIZE(WS_KEY_SIZE), "Invalid ws key size");
   fast_assert(accept_len == BASE64_ENCODED_SIZE(SHA1_DIGEST_SIZE), "Invalid accept key size");
 

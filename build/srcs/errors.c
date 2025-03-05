@@ -22,7 +22,6 @@ inline void fast_assert(const bool condition, const char *restrict msg)
 
 inline void panic(const char *restrict msg)
 {
-  log_msg(msg, strlen(msg));
   fflush(stderr); //TODO remove
   fflush(stdout); //TODO remove
   exit(EXIT_FAILURE);

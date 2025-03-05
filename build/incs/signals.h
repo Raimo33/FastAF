@@ -19,11 +19,10 @@
 
 # include "primitives/signal_primitives.h"
 # include "extensions.h"
-# include "logger.h"
 # include "errors.h"
 
 COLD uint16_t init_signals(void);
-COLD void handle_signal(const uint8_t fd, const uint32_t events, void *data);
-COLD void free_signals(uint8_t fd);
+COLD void handle_signal(const int fd, const uint32_t events, void *data);
+COLD void free_signals(int fd);
 
 #endif

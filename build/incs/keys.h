@@ -14,7 +14,7 @@
 # define KEYS_H
 
 # include <stdint.h>
-# include <stdbool.h>
+
 # include <openssl/rand.h>
 # include <openssl/sha.h>
 # include <openssl/evp.h>
@@ -25,7 +25,6 @@
 
 # include "primitives/crypto_primitives.h"
 # include "extensions.h"
-# include "logger.h"
 
 # define API_KEY_SIZE 64
 # define WS_KEY_SIZE 16

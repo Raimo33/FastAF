@@ -1,0 +1,3 @@
+/home/claudio/Desktop/FastAF/CMakeFiles/FastAF.dir
+/home/claudio/Desktop/FastAF/CMakeFiles/edit_cache.dir
+/home/claudio/Desktop/FastAF/CMakeFiles/rebuild_cache.dir

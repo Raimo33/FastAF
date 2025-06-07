@@ -1,10 +1,12 @@
 #pragma once
 
 #include <cstdint>
-#include <utility>
+#include <type_traits>
 
-template <typename PriceType, typename QtyType>
-  requires std::is_integral_v<PriceType> && std::is_integral_v<QtyType>
+template <typename T>
+concept Integral = std::is_integral_v<T>;
+
+template <Integral PriceType, Integral QtyType>
 class TopOfBook
 {
   public:

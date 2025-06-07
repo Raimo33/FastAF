@@ -1,0 +1,1 @@
+/usr/bin/c++ -static CMakeFiles/FastAF.dir/srcs/main.cpp.o CMakeFiles/FastAF.dir/srcs/BinanceClient.cpp.o -o FastAF  -lssl -ldl -lresolv -lcrypto -lboost_system -ljemalloc 

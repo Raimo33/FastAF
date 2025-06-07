@@ -30,14 +30,17 @@ class BinanceClient
     BinanceClient(const BinanceClient &) = delete;
     BinanceClient &operator=(const BinanceClient &) = delete;
 
-    void onResolve(const boost::system::error_code &ec, const tcp::resolver::results_type &results);
-    void onConnect(const boost::system::error_code &ec, const tcp::resolver::results_type::endpoint_type &endpoint);
-    void onSSLHandshake(const boost::system::error_code &ec);
-    void onWSHandshake(const boost::system::error_code &ec);
-    void onSubscribe(const boost::system::error_code &ec);
-    void onRead(const boost::system::error_code &ec, std::size_t bytes_transferred);
+    void onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results);
+    void onConnect(const beast::error_code &ec, const tcp::resolver::results_type::endpoint_type &endpoint);
+    void onSSLHandshake(const beast::error_code &ec);
+    void onWSHandshake(const beast::error_code &ec);
+    void onSubscribe(const beast::error_code &ec);
+    void onRead(const beast::error_code &ec, std::size_t bytes_transferred);
+    void onControl(websocket::frame_type kind, std::string_view payload);
+    void onPing(const std::string_view payload);
+    void onPong(const beast::error_code &ec);
 
-    void handlePing(const size_t bytes_transferred);
+    inline void asyncRead(void);
 
     const std::string _symbol;
     const std::string _api_key;
@@ -51,3 +54,5 @@ class BinanceClient
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
     beast::flat_buffer _read_buffer;
 };
+
+#include "BinanceClient.inl"

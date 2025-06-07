@@ -78,32 +78,49 @@ void BinanceClient::onWSHandshake(const beast::error_code &ec)
 
   //log
 
-  _ws_stream.async_read(_read_buffer,
-    [this](const beast::error_code &ec, const size_t bytes_transferred) {
-      onRead(ec, bytes_transferred);
+  _ws_stream.control_callback(
+    [this](websocket::frame_type kind, std::string_view payload) {
+      onControl(kind, payload);
     });
+
+  asyncRead();
 }
 
 void BinanceClient::onRead(const beast::error_code &ec, const size_t bytes_transferred)
 {
   //check error branchless (every once in a while with a timer)
 
-  //branchless
-  if (_ws_stream.got_ping()) [[unlikely]]
-    handlePing(bytes_transferred);
-  else
-    // handle message
-  
-  _ws_stream.async_read(_read_buffer,
-    [this](const beast::error_code &ec, const size_t bytes_transferred) {
-      onRead(ec, bytes_transferred);
+  if (_ws_stream.got)
+
+  asyncRead();
+}
+
+void BinanceClient::onControl(websocket::frame_type kind, std::string_view payload)
+{
+  switch (kind) {
+    case websocket::frame_type::ping:
+      onPing(payload);
+      break;
+    case websocket::frame_type::close:
+      //handle close
+      break;
+    default:
+      break;
+  }
+}
+
+void BinanceClient::onPing(std::string_view payload)
+{
+  _ws_stream.async_pong(payload,
+    [this](const beast::error_code &ec) {
+      onPong(ec);
     });
 }
 
-void BinanceClient::handlePing(const size_t bytes_transferred)
+void BinanceClient::onPong(const beast::error_code &ec)
 {
-  std::string payload = beast::buffers_to_string(_read_buffer.data());
-  _read_buffer.consume(bytes_transferred);
+  if (ec) [[unlikely]]
+    utils::throw_error("Failed to send pong: " + ec.message());
 
-  _ws_stream.async_pong(std::move(payload));
+  //log
 }

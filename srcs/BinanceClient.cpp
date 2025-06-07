@@ -78,15 +78,32 @@ void BinanceClient::onWSHandshake(const beast::error_code &ec)
 
   //log
 
-  //read loop
+  _ws_stream.async_read(_read_buffer,
+    [this](const beast::error_code &ec, const size_t bytes_transferred) {
+      onRead(ec, bytes_transferred);
+    });
 }
 
-void BinanceClient::onRead(const beast::error_code &ec)
+void BinanceClient::onRead(const beast::error_code &ec, const size_t bytes_transferred)
 {
+  //check error branchless (every once in a while with a timer)
 
+  //branchless
+  if (_ws_stream.got_ping()) [[unlikely]]
+    handlePing(bytes_transferred);
+  else
+    // handle message
+  
+  _ws_stream.async_read(_read_buffer,
+    [this](const beast::error_code &ec, const size_t bytes_transferred) {
+      onRead(ec, bytes_transferred);
+    });
 }
 
-void BinanceClient::onPing(const beast::error_code &ec)
+void BinanceClient::handlePing(const size_t bytes_transferred)
 {
+  std::string payload = beast::buffers_to_string(_read_buffer.data());
+  _read_buffer.consume(bytes_transferred);
 
+  _ws_stream.async_pong(std::move(payload));
 }

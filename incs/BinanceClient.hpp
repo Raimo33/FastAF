@@ -35,8 +35,9 @@ class BinanceClient
     void onSSLHandshake(const boost::system::error_code &ec);
     void onWSHandshake(const boost::system::error_code &ec);
     void onSubscribe(const boost::system::error_code &ec);
-    void onRead(const boost::system::error_code &ec);
-    void onPing(const boost::system::error_code &ec);
+    void onRead(const boost::system::error_code &ec, std::size_t bytes_transferred);
+
+    void handlePing(const size_t bytes_transferred);
 
     const std::string _symbol;
     const std::string _api_key;
@@ -48,5 +49,5 @@ class BinanceClient
     ssl::context _ssl_ctx;
     tcp::resolver _resolver;
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
-    beast::flat_buffer _buffer;
+    beast::flat_buffer _read_buffer;
 };

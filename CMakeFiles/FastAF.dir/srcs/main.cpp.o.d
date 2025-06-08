@@ -1509,6 +1509,6 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: \
  /usr/include/boost/beast/core/flat_stream.hpp \
  /usr/include/boost/beast/core/detail/flat_stream.hpp \
  /usr/include/boost/beast/core/impl/flat_stream.hpp \
- /usr/include/boost/endian/arithmetic.hpp \
- /usr/include/boost/endian/buffers.hpp \
- /home/claudio/Desktop/FastAF/incs/BinanceClient.inl
+ /home/claudio/Desktop/FastAF/incs/BinanceClient.inl \
+ /home/claudio/Desktop/FastAF/incs/macros.hpp \
+ /home/claudio/Desktop/FastAF/incs/utils.hpp

@@ -4,8 +4,10 @@
 CMakeFiles/FastAF.dir/srcs/BinanceClient.cpp.o: srcs/BinanceClient.cpp \
   incs/BinanceClient.hpp \
   incs/BinanceClient.inl \
+  incs/Messages.hpp \
   incs/TopOfBook.hpp \
   incs/TopOfBook.inl \
+  incs/macros.hpp \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
   /usr/include/asm-generic/bitsperlong.h \
@@ -1659,6 +1661,8 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: srcs/main.cpp \
   incs/BinanceClient.inl \
   incs/TopOfBook.hpp \
   incs/TopOfBook.inl \
+  incs/macros.hpp \
+  incs/utils.hpp \
   /usr/include/alloca.h \
   /usr/include/arpa/inet.h \
   /usr/include/asm-generic/bitsperlong.h \
@@ -2265,8 +2269,6 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: srcs/main.cpp \
   /usr/include/boost/describe/modifiers.hpp \
   /usr/include/boost/detail/workaround.hpp \
   /usr/include/boost/enable_shared_from_this.hpp \
-  /usr/include/boost/endian/arithmetic.hpp \
-  /usr/include/boost/endian/buffers.hpp \
   /usr/include/boost/endian/conversion.hpp \
   /usr/include/boost/endian/detail/endian_load.hpp \
   /usr/include/boost/endian/detail/endian_reverse.hpp \
@@ -3978,6 +3980,10 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: srcs/main.cpp \
 
 /usr/include/boost/type_traits/is_lvalue_reference.hpp:
 
+/usr/include/boost/type_traits/is_list_constructible.hpp:
+
+/usr/include/boost/type_traits/is_integral.hpp:
+
 /usr/include/boost/core/detail/sp_thread_pause.hpp:
 
 /usr/include/boost/endian/detail/is_trivially_copyable.hpp:
@@ -4103,10 +4109,6 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: srcs/main.cpp \
 /usr/include/boost/asio/detail/impl/eventfd_select_interrupter.ipp:
 
 /usr/include/boost/beast/websocket/detail/service.hpp:
-
-/usr/include/boost/core/detail/sp_thread_yield.hpp:
-
-/usr/include/boost/date_time/gregorian/greg_date.hpp:
 
 /usr/include/boost/beast/core/detail/impl/read.hpp:
 
@@ -4458,6 +4460,18 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: srcs/main.cpp \
 
 /usr/include/boost/type_traits/has_minus.hpp:
 
+/usr/include/boost/asio/impl/execution_context.ipp:
+
+/usr/include/boost/beast/websocket/stream_fwd.hpp:
+
+/usr/include/c++/13/bits/algorithmfwd.h:
+
+/usr/include/boost/mpl/aux_/config/msvc_typename.hpp:
+
+/usr/include/boost/assert.hpp:
+
+/usr/include/boost/asio/ip/impl/address_v6.hpp:
+
 /usr/include/boost/type_traits/aligned_storage.hpp:
 
 /usr/include/boost/endian/arithmetic.hpp:
@@ -4630,11 +4644,21 @@ incs/TopOfBook.hpp:
 
 /usr/include/boost/asio/error.hpp:
 
-/usr/include/boost/asio/traits/set_error_free.hpp:
+/usr/include/c++/13/source_location:
 
-/usr/include/boost/numeric/conversion/cast.hpp:
+/usr/include/c++/13/bits/atomic_base.h:
 
-/usr/include/boost/asio/basic_socket_acceptor.hpp:
+/usr/include/boost/intrusive/options.hpp:
+
+/usr/include/boost/asio/detail/conditionally_enabled_mutex.hpp:
+
+/usr/include/boost/core/typeinfo.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
+
+/usr/include/boost/date_time/date_clock_device.hpp:
+
+/usr/include/boost/move/detail/std_ns_begin.hpp:
 
 /usr/include/boost/asio/associated_allocator.hpp:
 
@@ -4656,62 +4680,6 @@ incs/TopOfBook.hpp:
 
 srcs/BinanceClient.cpp:
 
-/usr/include/c++/13/source_location:
-
-/usr/include/c++/13/bits/atomic_base.h:
-
-/usr/include/boost/intrusive/options.hpp:
-
-/usr/include/boost/asio/detail/conditionally_enabled_mutex.hpp:
-
-/usr/include/boost/core/typeinfo.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
-
-/usr/include/boost/date_time/date_clock_device.hpp:
-
-/usr/include/boost/move/detail/std_ns_begin.hpp:
-
-/usr/include/boost/beast/core/flat_stream.hpp:
-
-/usr/include/asm-generic/posix_types.h:
-
-/usr/include/boost/asio/traits/require_free.hpp:
-
-/usr/include/boost/mp11/detail/mp_min_element.hpp:
-
-/usr/include/boost/type_traits/has_new_operator.hpp:
-
-/usr/include/openssl/randerr.h:
-
-/usr/include/boost/asio/detail/impl/timer_queue_set.ipp:
-
-/usr/include/boost/asio/detail/conditionally_enabled_event.hpp:
-
-/usr/include/boost/exception/exception.hpp:
-
-/usr/include/boost/asio/detail/completion_handler.hpp:
-
-/usr/include/openssl/tls1.h:
-
-/usr/include/boost/type_traits/is_unscoped_enum.hpp:
-
-/usr/include/boost/type_traits/is_unbounded_array.hpp:
-
-/usr/include/boost/intrusive/detail/node_cloner_disposer.hpp:
-
-/usr/include/boost/asio/detail/fenced_block.hpp:
-
-/usr/include/boost/asio/detail/handler_type_requirements.hpp:
-
-/usr/include/boost/mp11/detail/config.hpp:
-
-/usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp:
-
-/usr/include/openssl/ssl.h:
-
-/usr/include/boost/asio/detail/reactive_socket_connect_op.hpp:
-
 /usr/include/boost/asio/detail/initiate_dispatch.hpp:
 
 /usr/include/boost/asio/detail/impl/thread_context.ipp:
@@ -4729,16 +4697,6 @@ srcs/BinanceClient.cpp:
 /usr/include/boost/asio/detail/initiate_post.hpp:
 
 /usr/include/boost/beast/websocket/detail/soft_mutex.hpp:
-
-/usr/include/boost/asio/detail/impl/epoll_reactor.hpp:
-
-/usr/lib/gcc/x86_64-linux-gnu/13/include/xmmintrin.h:
-
-/usr/include/boost/type_traits/is_member_pointer.hpp:
-
-/usr/include/boost/asio/associated_immediate_executor.hpp:
-
-/usr/include/boost/mpl/identity.hpp:
 
 /usr/include/boost/asio/detail/reactive_wait_op.hpp:
 
@@ -4766,9 +4724,79 @@ srcs/BinanceClient.cpp:
 
 /usr/include/boost/intrusive/pack_options.hpp:
 
+/usr/lib/gcc/x86_64-linux-gnu/13/include/xmmintrin.h:
+
+/usr/include/boost/type_traits/is_member_pointer.hpp:
+
+/usr/include/boost/asio/associated_immediate_executor.hpp:
+
+/usr/include/boost/mpl/identity.hpp:
+
+/usr/include/boost/asio/detail/impl/epoll_reactor.hpp:
+
+/usr/include/boost/beast/core/flat_stream.hpp:
+
+/usr/include/asm-generic/posix_types.h:
+
+/usr/include/boost/asio/traits/require_free.hpp:
+
+/usr/include/boost/mp11/detail/mp_min_element.hpp:
+
+/usr/include/boost/type_traits/has_new_operator.hpp:
+
+/usr/include/openssl/randerr.h:
+
+/usr/include/boost/asio/detail/impl/timer_queue_set.ipp:
+
+/usr/include/boost/asio/detail/conditionally_enabled_event.hpp:
+
+/usr/include/boost/exception/exception.hpp:
+
+/usr/include/boost/asio/traits/set_error_free.hpp:
+
+/usr/include/boost/numeric/conversion/cast.hpp:
+
+/usr/include/boost/asio/basic_socket_acceptor.hpp:
+
 /usr/include/boost/asio/any_io_executor.hpp:
 
 /usr/include/boost/preprocessor/control/detail/limits/while_256.hpp:
+
+/usr/include/boost/beast/http/type_traits.hpp:
+
+/usr/include/boost/asio/wait_traits.hpp:
+
+/usr/include/boost/intrusive/detail/key_nodeptr_comp.hpp:
+
+/usr/include/x86_64-linux-gnu/bits/endian.h:
+
+/usr/include/boost/numeric/conversion/sign_mixture_enum.hpp:
+
+/usr/include/boost/asio/ip/bad_address_cast.hpp:
+
+/usr/include/boost/asio/execution/bulk_execute.hpp:
+
+/usr/include/boost/beast/core/detail/stream_base.hpp:
+
+/usr/include/stdint.h:
+
+/usr/include/boost/core/default_allocator.hpp:
+
+/usr/include/openssl/engineerr.h:
+
+/usr/include/boost/beast/core/impl/flat_static_buffer.hpp:
+
+/usr/include/c++/13/bits/ranges_algo.h:
+
+/usr/include/boost/asio/io_context.hpp:
+
+/usr/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp:
+
+/usr/include/boost/mp11/detail/mp_remove_if.hpp:
+
+/usr/include/boost/preprocessor/tuple/eat.hpp:
+
+/usr/include/boost/asio/ip/address.hpp:
 
 /usr/include/boost/asio/execution/set_done.hpp:
 
@@ -4818,15 +4846,7 @@ srcs/BinanceClient.cpp:
 
 /usr/include/boost/intrusive/detail/algorithm.hpp:
 
-/usr/include/boost/asio/wait_traits.hpp:
-
-/usr/include/boost/beast/http/type_traits.hpp:
-
-/usr/include/boost/intrusive/detail/key_nodeptr_comp.hpp:
-
 /usr/include/boost/asio/associated_cancellation_slot.hpp:
-
-/usr/include/boost/system/errc.hpp:
 
 /usr/include/boost/asio/time_traits.hpp:
 
@@ -4836,13 +4856,33 @@ srcs/BinanceClient.cpp:
 
 /usr/include/asm-generic/socket.h:
 
-/usr/include/boost/beast/core/impl/string.ipp:
+/usr/include/boost/asio/detail/impl/service_registry.hpp:
 
-/usr/include/boost/date_time/locale_config.hpp:
+/usr/include/c++/13/cstdint:
 
-/usr/include/boost/asio/detail/handler_work.hpp:
+/usr/include/asm-generic/ioctls.h:
 
-/usr/include/alloca.h:
+/usr/include/openssl/comperr.h:
+
+/usr/include/boost/beast/http/impl/error.ipp:
+
+/usr/include/boost/asio/ip/resolver_base.hpp:
+
+/usr/include/boost/type_traits/add_lvalue_reference.hpp:
+
+/usr/include/boost/asio/ip/impl/address_v6.ipp:
+
+/usr/include/boost/assert/source_location.hpp:
+
+/usr/include/c++/13/pstl/glue_numeric_defs.h:
+
+/usr/include/boost/asio/detail/resolve_op.hpp:
+
+/usr/include/boost/describe/detail/cx_streq.hpp:
+
+/usr/include/asm-generic/ioctl.h:
+
+/usr/include/boost/preprocessor/control/limits/while_256.hpp:
 
 /usr/include/boost/beast/core/impl/basic_stream.hpp:
 
@@ -4892,6 +4932,10 @@ incs/BinanceClient.hpp:
 
 /usr/include/arpa/inet.h:
 
+/usr/include/boost/type_traits/is_base_of.hpp:
+
+/usr/include/boost/type_traits/detail/mp_defer.hpp:
+
 /usr/include/boost/endian/detail/intrinsic.hpp:
 
 /usr/include/boost/container_hash/detail/hash_range.hpp:
@@ -4901,6 +4945,18 @@ incs/BinanceClient.hpp:
 /usr/include/boost/asio/detail/reactive_null_buffers_op.hpp:
 
 /usr/include/boost/core/detail/string_view.hpp:
+
+/usr/include/boost/asio/detail/handler_work.hpp:
+
+/usr/include/alloca.h:
+
+/usr/include/boost/system/errc.hpp:
+
+incs/Messages.hpp:
+
+/usr/include/boost/beast/core/impl/string.ipp:
+
+/usr/include/boost/date_time/locale_config.hpp:
 
 /usr/include/boost/beast/websocket/impl/ping.hpp:
 
@@ -4942,32 +4998,6 @@ incs/BinanceClient.hpp:
 
 /usr/include/boost/type_traits/has_less_equal.hpp:
 
-/usr/include/openssl/comperr.h:
-
-/usr/include/boost/beast/http/impl/error.ipp:
-
-/usr/include/boost/asio/ip/resolver_base.hpp:
-
-/usr/include/c++/13/pstl/glue_numeric_defs.h:
-
-/usr/include/boost/asio/detail/resolve_op.hpp:
-
-/usr/include/boost/describe/detail/cx_streq.hpp:
-
-/usr/include/asm-generic/ioctl.h:
-
-/usr/include/boost/preprocessor/control/limits/while_256.hpp:
-
-/usr/include/boost/type_traits/detail/mp_defer.hpp:
-
-/usr/include/boost/type_traits/is_base_of.hpp:
-
-/usr/include/boost/asio/detail/impl/service_registry.hpp:
-
-/usr/include/c++/13/cstdint:
-
-/usr/include/asm-generic/ioctls.h:
-
 /usr/include/boost/asio/detail/impl/throw_error.ipp:
 
 /usr/include/boost/mpl/aux_/include_preprocessed.hpp:
@@ -4991,12 +5021,6 @@ incs/BinanceClient.hpp:
 /usr/include/boost/beast/core/detail/read.hpp:
 
 /usr/include/boost/optional/optional_fwd.hpp:
-
-/usr/include/boost/core/detail/sp_thread_sleep.hpp:
-
-/usr/include/boost/asio/ssl/verify_context.hpp:
-
-/usr/include/boost/mpl/aux_/msvc_eti_base.hpp:
 
 /usr/include/boost/beast/websocket/error.hpp:
 
@@ -5034,46 +5058,6 @@ incs/BinanceClient.hpp:
 
 /usr/include/boost/mpl/aux_/config/compiler.hpp:
 
-/usr/include/stdint.h:
-
-/usr/include/boost/core/default_allocator.hpp:
-
-/usr/include/openssl/engineerr.h:
-
-/usr/include/boost/beast/core/impl/flat_static_buffer.hpp:
-
-/usr/include/c++/13/bits/ranges_algo.h:
-
-/usr/include/boost/asio/io_context.hpp:
-
-/usr/include/boost/preprocessor/arithmetic/detail/is_minimum_number.hpp:
-
-/usr/include/boost/mp11/detail/mp_remove_if.hpp:
-
-/usr/include/wctype.h:
-
-/usr/include/c++/13/mutex:
-
-/usr/include/boost/preprocessor/arithmetic/detail/is_maximum_number.hpp:
-
-/usr/include/boost/asio/detail/handler_tracking.hpp:
-
-/usr/include/boost/preprocessor/logical/not.hpp:
-
-/usr/include/boost/asio/detail/reactive_socket_recv_op.hpp:
-
-/usr/include/boost/asio/detail/eventfd_select_interrupter.hpp:
-
-/usr/include/boost/type_traits/enable_if.hpp:
-
-/usr/include/boost/asio/impl/execution_context.ipp:
-
-/usr/include/boost/type_traits/add_lvalue_reference.hpp:
-
-/usr/include/boost/assert/source_location.hpp:
-
-/usr/include/boost/asio/ip/impl/address_v6.ipp:
-
 /usr/include/boost/asio/compose.hpp:
 
 /usr/include/c++/13/bits/postypes.h:
@@ -5088,21 +5072,9 @@ incs/BinanceClient.hpp:
 
 /usr/include/boost/beast/core/impl/error.ipp:
 
-/usr/include/boost/type_traits/is_list_constructible.hpp:
-
 /usr/include/c++/13/bits/hash_bytes.h:
 
 /usr/include/boost/smart_ptr/shared_ptr.hpp:
-
-/usr/include/boost/asio/execution/bulk_execute.hpp:
-
-/usr/include/x86_64-linux-gnu/bits/endian.h:
-
-/usr/include/boost/numeric/conversion/sign_mixture_enum.hpp:
-
-/usr/include/boost/asio/ip/bad_address_cast.hpp:
-
-/usr/include/boost/beast/core/detail/stream_base.hpp:
 
 /usr/include/boost/asio/ssl/detail/verify_callback.hpp:
 
@@ -5133,6 +5105,16 @@ incs/BinanceClient.hpp:
 incs/BinanceClient.inl:
 
 /usr/include/boost/asio/execution/outstanding_work.hpp:
+
+/usr/include/wctype.h:
+
+/usr/include/c++/13/mutex:
+
+/usr/include/boost/preprocessor/arithmetic/detail/is_maximum_number.hpp:
+
+/usr/include/boost/asio/detail/handler_tracking.hpp:
+
+/usr/include/boost/preprocessor/logical/not.hpp:
 
 /usr/include/boost/type_traits/is_assignable.hpp:
 
@@ -5165,10 +5147,6 @@ incs/BinanceClient.inl:
 /usr/include/boost/asio/ssl/detail/impl/openssl_init.ipp:
 
 /usr/include/boost/intrusive/detail/exception_disposer.hpp:
-
-/usr/include/boost/config/compiler/gcc.hpp:
-
-/usr/include/boost/beast/core/impl/buffers_suffix.hpp:
 
 /usr/include/boost/asio/handler_alloc_hook.hpp:
 
@@ -5204,9 +5182,37 @@ incs/BinanceClient.inl:
 
 /usr/include/boost/asio/detail/call_stack.hpp:
 
-/usr/include/boost/preprocessor/tuple/eat.hpp:
+/usr/include/boost/asio/detail/completion_handler.hpp:
 
-/usr/include/boost/asio/ip/address.hpp:
+/usr/include/openssl/tls1.h:
+
+/usr/include/boost/type_traits/is_unscoped_enum.hpp:
+
+/usr/include/boost/type_traits/is_unbounded_array.hpp:
+
+/usr/include/boost/intrusive/detail/node_cloner_disposer.hpp:
+
+/usr/include/boost/asio/detail/fenced_block.hpp:
+
+/usr/include/boost/asio/detail/handler_type_requirements.hpp:
+
+/usr/include/boost/mp11/detail/config.hpp:
+
+/usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp:
+
+/usr/include/openssl/ssl.h:
+
+/usr/include/boost/asio/detail/reactive_socket_connect_op.hpp:
+
+/usr/include/boost/asio/detail/reactive_socket_recv_op.hpp:
+
+/usr/include/boost/beast/core/impl/buffers_suffix.hpp:
+
+/usr/include/boost/config/compiler/gcc.hpp:
+
+/usr/include/boost/asio/detail/eventfd_select_interrupter.hpp:
+
+/usr/include/boost/type_traits/enable_if.hpp:
 
 /usr/include/boost/asio/detail/reactive_socket_recvmsg_op.hpp:
 
@@ -5337,6 +5343,10 @@ incs/TopOfBook.inl:
 /usr/include/boost/beast/http/status.hpp:
 
 /usr/include/boost/beast/core/detail/variant.hpp:
+
+/usr/include/boost/system/detail/generic_category.hpp:
+
+/usr/include/boost/type_traits/copy_cv_ref.hpp:
 
 /usr/include/boost/asio/execution/operation_state.hpp:
 
@@ -5506,15 +5516,15 @@ incs/TopOfBook.inl:
 
 /usr/include/boost/system/error_category.hpp:
 
-/usr/include/boost/beast/websocket/stream_fwd.hpp:
+/usr/include/boost/core/detail/sp_thread_sleep.hpp:
 
-/usr/include/c++/13/bits/algorithmfwd.h:
+/usr/include/boost/asio/ssl/verify_context.hpp:
 
-/usr/include/boost/mpl/aux_/config/msvc_typename.hpp:
+/usr/include/boost/mpl/aux_/msvc_eti_base.hpp:
 
-/usr/include/boost/assert.hpp:
+/usr/include/boost/core/detail/sp_thread_yield.hpp:
 
-/usr/include/boost/asio/ip/impl/address_v6.hpp:
+/usr/include/boost/date_time/gregorian/greg_date.hpp:
 
 /usr/include/boost/preprocessor/variadic/limits/size_64.hpp:
 
@@ -5581,6 +5591,8 @@ incs/TopOfBook.inl:
 /usr/include/c++/13/vector:
 
 /usr/include/boost/date_time/gregorian/greg_duration.hpp:
+
+incs/utils.hpp:
 
 /usr/include/boost/preprocessor/variadic/elem.hpp:
 
@@ -6470,10 +6482,6 @@ srcs/main.cpp:
 
 /usr/include/boost/type_traits/conjunction.hpp:
 
-/usr/include/boost/system/detail/generic_category.hpp:
-
-/usr/include/boost/type_traits/copy_cv_ref.hpp:
-
 /usr/include/boost/mpl/aux_/preprocessed/gcc/and.hpp:
 
 /usr/include/boost/type_traits/copy_reference.hpp:
@@ -6606,10 +6614,10 @@ srcs/main.cpp:
 
 /usr/include/boost/type_traits/detail/config.hpp:
 
+incs/macros.hpp:
+
 /usr/include/boost/type_traits/is_enum.hpp:
 
 /usr/include/boost/type_traits/is_floating_point.hpp:
 
 /usr/include/boost/type_traits/is_fundamental.hpp:
-
-/usr/include/boost/type_traits/is_integral.hpp:

@@ -5,22 +5,23 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(FastAF
-  srcs/main.cpp
+add_executable(producer
+  srcs/producer.cpp
   srcs/BinanceClient.cpp
+  srcs/utils.cpp
 )
 
-target_include_directories(FastAF PRIVATE incs)
+target_include_directories(producer PRIVATE incs)
 
 set(COMPILER_FLAGS
   -Wall -Wextra -Werror -pedantic
   -fomit-frame-pointer -fno-rtti -fno-exceptions -fstrict-aliasing -fno-math-errno -fno-stack-protector
   -march=native -funit-at-a-time -fexpensive-optimizations -fvect-cost-model=dynamic
   -freciprocal-math -fsingle-precision-constant -ffp-contract=fast
-  -fno-plt -fuse-linker-plugin -flto
+  -fno-plt -fuse-linker-plugin -flto -flto=jobserver
 )
 
-target_compile_options(FastAF PRIVATE ${COMPILER_FLAGS})
+target_compile_options(producer PRIVATE ${COMPILER_FLAGS})
 
 # #cleanup
 # CXXFLAGS += -ftree-pta -ftree-copy-prop -ftree-forwprop -ftree-phiprop -ftree-scev-cprop
@@ -46,7 +47,7 @@ target_compile_options(FastAF PRIVATE ${COMPILER_FLAGS})
 # CXXFLAGS += -falign-functions -falign-jumps -falign-labels -falign-loops
 # CXXFLAGS += -fcaller-saves -fdefer-pop -fguess-branch-probability
 
-target_link_options(FastAF PRIVATE -static)
+target_link_options(producer PRIVATE -static)
 
 set(LIBRARIES
   ssl
@@ -57,4 +58,4 @@ set(LIBRARIES
   jemalloc
 )
 
-target_link_libraries(FastAF PRIVATE ${LIBRARIES})
+target_link_libraries(producer PRIVATE ${LIBRARIES})

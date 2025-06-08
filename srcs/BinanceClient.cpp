@@ -1,3 +1,14 @@
+/*================================================================================
+
+File: BinanceClient.cpp                                                         
+Creator: Claudio Raimondi                                                       
+Email: claudio.raimondi@pm.me                                                   
+
+created at: 2025-06-08 13:31:29                                                 
+last edited: 2025-06-08 13:31:29                                                
+
+================================================================================*/
+
 #include "BinanceClient.hpp"
 #include "messages/BinanceMessages.hpp"
 #include "messages/InternalMessages.hpp"
@@ -84,7 +95,7 @@ COLD void BinanceClient::onWSHandshake(const beast::error_code &ec)
   _ws_stream.binary(true);
 
   _ws_stream.async_read(_read_buffer,
-    [this](const beast::error_code &ec, size_t bytes_transferred) {
+    [this](const beast::error_code &ec, size_t UNUSED bytes_transferred) {
       onRead(ec);
     });
 }

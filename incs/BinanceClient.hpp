@@ -1,3 +1,14 @@
+/*================================================================================
+
+File: BinanceClient.hpp                                                         
+Creator: Claudio Raimondi                                                       
+Email: claudio.raimondi@pm.me                                                   
+
+created at: 2025-06-08 13:31:29                                                 
+last edited: 2025-06-08 13:31:29                                                
+
+================================================================================*/
+
 #pragma once
 
 #include <cstdint>
@@ -8,6 +19,7 @@
 #include <boost/beast/ssl/ssl_stream.hpp>
 
 #include "ipq/SPSCQueue.hpp"
+#include "messages/InternalMessages.hpp"
 
 namespace beast = boost::beast;
 namespace websocket = beast::websocket;
@@ -19,7 +31,7 @@ using tcp = boost::asio::ip::tcp;
 class BinanceClient
 {
   public:
-    using queue_capacity = 64;
+    using queue_type = ipq::SPSCQueue<messages::internal::TopOfBook, 64>; 
 
     BinanceClient(std::string_view symbol, std::string_view api_key, const int queue_fd) noexcept;
     ~BinanceClient() = default;
@@ -54,5 +66,5 @@ class BinanceClient
     tcp::resolver _resolver;
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
     beast::flat_buffer _read_buffer;
-    ipq::SPSCQueue<messages::internal::InternalMessage, queue_capacity> _queue;
+    queue_type _queue;
 };

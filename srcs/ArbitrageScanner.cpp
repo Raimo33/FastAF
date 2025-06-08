@@ -56,4 +56,7 @@ HOT void ArbitrageScanner::checkArbitrage(const bool no_op)
   if (no_op) [[unlikely]] //TODO branchless
     return;
 
+
+  //scale prices to the max exponent of all (cached)
 }
+

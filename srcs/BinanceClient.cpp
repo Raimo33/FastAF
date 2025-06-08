@@ -35,6 +35,7 @@ COLD BinanceClient::BinanceClient(const currency_pair &pair, std::string_view ap
 
 COLD BinanceClient::~BinanceClient()
 {
+  _io_ctx.stop();
   close(_queue_fd);
   shm_unlink(_mem_name.c_str());
 }
@@ -104,6 +105,8 @@ COLD void BinanceClient::onWSHandshake(const beast::error_code &ec)
 
   _ws_stream.binary(true);
 
+  //TODO first read to initialize _price_exponent and _qty_exponent
+
   _ws_stream.async_read(_read_buffer,
     [this](const beast::error_code &ec, size_t UNUSED bytes_transferred) {
       onRead(ec);
@@ -136,7 +139,7 @@ HOT void BinanceClient::onControl(websocket::frame_type kind, std::string &&payl
       onPing(std::move(payload));
       break;
     case websocket::frame_type::close:
-      //handle close
+      onClose();
       break;
     default:
       break;
@@ -170,6 +173,8 @@ HOT void BinanceClient::processData(std::span<const std::byte> data)
 
   const BestBidAskStreamEvent *event = reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
 
+  assert((event->price_exponent == _price_exponent) & (event->qty_exponent == _qty_exponent));
+
   _queue.push(TopOfBook{
     event->bid_price,
     event->bid_qty,
@@ -178,4 +183,9 @@ HOT void BinanceClient::processData(std::span<const std::byte> data)
     event->price_exponent,
     event->qty_exponent
   });
+}
+
+COLD void BinanceClient::onClose(void)
+{
+  _io_ctx.stop();
 }

@@ -24,7 +24,7 @@ using namespace messages::internal;
 class ArbitrageScanner
 {
   public:
-    static constexpr size_t QUEUE_CAPACITY = 64;
+    static constexpr size_t QUEUE_CAPACITY = 16;
 
     ArbitrageScanner(const std::array<currency_pair, 3> &pairs);
     ~ArbitrageScanner();

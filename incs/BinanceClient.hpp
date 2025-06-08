@@ -56,6 +56,7 @@ class BinanceClient
     void onControl(websocket::frame_type kind, std::string &&payload);
     void onPing(std::string &&payload);
     void onPong(const beast::error_code &ec);
+    void onClose(void);
 
     void asyncRead(void);
     void processData(const std::span<const std::byte> data);
@@ -75,4 +76,6 @@ class BinanceClient
     std::string _mem_name;
     int _queue_fd;
     queue_type _queue;
+    uint8_t _price_exponent;
+    uint8_t _qty_exponent;
 };

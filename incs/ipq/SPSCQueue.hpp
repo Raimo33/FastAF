@@ -42,8 +42,8 @@ class SPSCQueue : public IQueueCRTP<SPSCQueue<Item, Capacity>, Item, Capacity>
 
     bool pop_impl(Item &out) noexcept
     {
-      static thread_local size_t local_read_idx = 0;
-      static thread_local size_t cached_write_idx = 0;
+      static thread_local size_t local_read_idx;
+      static thread_local size_t cached_write_idx;
 
       if (local_read_idx == cached_write_idx) [[unlikely]]
       {
@@ -52,7 +52,7 @@ class SPSCQueue : public IQueueCRTP<SPSCQueue<Item, Capacity>, Item, Capacity>
           return false;
       }
 
-      out = data->buffer[local_read_idx & wrap_mask];
+      out = std::move(data->buffer[local_read_idx & wrap_mask]);
       local_read_idx++;
       return true;
     }

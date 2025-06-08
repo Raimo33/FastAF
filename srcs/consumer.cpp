@@ -9,7 +9,7 @@ last edited: 2025-06-08 18:58:46
 
 ================================================================================*/
 
-#include "ArbitrageFinder.hpp"
+#include "ArbitrageScanner.hpp"
 #include "utils.hpp"
 
 #include <string>
@@ -20,25 +20,13 @@ last edited: 2025-06-08 18:58:46
 int main(int argc, char **argv)
 {
   if (argc != 4)
-    utils::throw_error("Usage: " + std::string(argv[0]) + " <pair> <pair> <pair>");
+    utils::throw_error("Usage: " + std::string(argv[0]) + " <base-quote> <base-quote> <base-quote>");
 
-  std::array<std::string, 3> pairs;
-  std::array<std::string, 3> mem_names;
-  std::array<int, 3> queue_fds;
+  std::array<currency_pair, 3> pairs;
 
-  for (int i = 0; i < 3; ++i)
-  {
-    pairs[i] = argv[i];
-    mem_names[i] = "/binance_" + pairs[i];
-    queue_fds[i] = shm_open(mem_names[i].c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-  }
+  for (size_t i = 1; i < 4; ++i)
+    pairs[i] = utils::parse_pair(argv[i]);
 
-  ArbitrageFinder finder(queue_fds);
-  finder.start();
-
-  for (int i = 0; i < 3; ++i)
-  {
-    close(queue_fds[i]);
-    shm_unlink(mem_names[i].c_str());
-  }
+  ArbitrageScanner Scanner(pairs);
+  Scanner.start();
 }

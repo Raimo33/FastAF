@@ -37,3 +37,16 @@ COLD NEVER_INLINE void utils::throw_error(std::string_view message)
   std::abort();
 #endif
 }
+
+COLD std::pair<std::string, std::string> utils::parse_pair(std::string_view pair)
+{
+  const size_t pos = pair.find('-');
+  
+  std::string base(pair.substr(0, pos));
+  std::string quote(pair.substr(pos + 1));
+
+  if (base.empty() | quote.empty())
+    throw_error("Invalid pair format: " + std::string(pair));
+
+  return {std::move(base), std::move(quote)};
+}

@@ -16,25 +16,27 @@ last edited: 2025-06-08 18:58:46
 
 //logging with individual SPSC queues (not IPC, using threads) (each message is a span object)
 
-COLD BinanceClient::BinanceClient(std::string_view base, std::string_view quote, std::string_view api_key, const int queue_fd) noexcept :
-  _base_currency(base),
-  _quote_currency(quote),
+COLD BinanceClient::BinanceClient(const currency_pair &pair, std::string_view api_key) :
+  _pair(pair),
   _api_key(api_key),
   _price_exponent(0),
   _qty_exponent(0),
   _ssl_ctx(ssl::context::tlsv13_client),
   _resolver(_io_ctx),
   _ws_stream(_io_ctx, _ssl_ctx),
-  _read_buffer(8192),
-  _queue(queue_fd),
-  _last_pair_info{}
+  _read_buffer(1024),
+  _mem_name("/binance_" + _pair.first + _pair.second + "_queue"),
+  _queue_fd(shm_open(_mem_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666)),
+  _queue(_queue_fd)
 {
-  _last_pair_info.type = messages::InternalMessage::Type::PairInfo;
-  std::strncpy(_last_pair_info.pair_info.base_currency, _base_currency.data(), 8);
-  std::strncpy(_last_pair_info.pair_info.quote_currency, _quote_currency.data(), 8);
-
   _ssl_ctx.set_default_verify_paths();
   _ssl_ctx.set_verify_mode(ssl::verify_peer);
+}
+
+COLD BinanceClient::~BinanceClient()
+{
+  close(_queue_fd);
+  shm_unlink(_mem_name.c_str());
 }
 
 COLD void BinanceClient::start(void) noexcept
@@ -83,7 +85,9 @@ COLD void BinanceClient::onSSLHandshake(const beast::error_code &ec)
       req.set("X-MBX-APIKEY", _api_key);
     }));
 
-  _ws_stream.async_handshake(HOSTNAME, "/ws/" + _base_currency + _quote_currency + "@bestBidAsk",
+  const std::string path = "/ws/" + _pair.first + _pair.second + "@bestBidAsk";
+
+  _ws_stream.async_handshake(HOSTNAME, path,
     [this](const beast::error_code &ec) {
       onWSHandshake(ec);
     });
@@ -94,8 +98,8 @@ COLD void BinanceClient::onWSHandshake(const beast::error_code &ec)
   assert(!ec);
 
   _ws_stream.control_callback(
-  [this](websocket::frame_type kind, std::string_view payload) {
-    onControl(kind, payload);
+  [this](websocket::frame_type kind, std::string &&payload) {
+    onControl(kind, std::move(payload));
   });
 
   _ws_stream.binary(true);
@@ -124,12 +128,12 @@ HOT void BinanceClient::onRead(const beast::error_code &ec)
     });
 }
 
-HOT void BinanceClient::onControl(websocket::frame_type kind, std::string_view payload)
+HOT void BinanceClient::onControl(websocket::frame_type kind, std::string &&payload)
 {
   switch (kind)
   {
     case websocket::frame_type::ping:
-      onPing(payload);
+      onPing(std::move(payload));
       break;
     case websocket::frame_type::close:
       //handle close
@@ -139,9 +143,9 @@ HOT void BinanceClient::onControl(websocket::frame_type kind, std::string_view p
   }
 }
 
-HOT void BinanceClient::onPing(std::string_view payload)
+HOT void BinanceClient::onPing(std::string &&payload)
 {
-  websocket::ping_data pong_payload(payload); //useless copy, but required by the API
+  websocket::ping_data pong_payload(std::move(payload));
 
   _ws_stream.async_pong(pong_payload,
     [this](const beast::error_code &ec) {
@@ -154,12 +158,10 @@ HOT void BinanceClient::onPong(const beast::error_code &ec)
   assert(!ec);
 }
 
-//TODO REMOVE
-#include <iostream>
 HOT void BinanceClient::processData(std::span<const std::byte> data)
 {
   using namespace messages::binance::sbe;
-  using namespace messages;
+  using namespace messages::internal;
 
   const Header *header = reinterpret_cast<const Header *>(data.data());
   assert(header->template_id == 10001);
@@ -168,24 +170,12 @@ HOT void BinanceClient::processData(std::span<const std::byte> data)
 
   const BestBidAskStreamEvent *event = reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
 
-  bool info_changed = false;
-  info_changed |= (_last_pair_info.pair_info.price_exponent != event->price_exponent);
-  info_changed |= (_last_pair_info.pair_info.qty_exponent != event->qty_exponent);
-
-  if (info_changed) [[unlikely]]
-  {
-    _last_pair_info.pair_info.price_exponent = event->price_exponent;
-    _last_pair_info.pair_info.qty_exponent = event->qty_exponent;
-
-    _queue.push(_last_pair_info);
-  }
-
-  InternalMessage message;
-  message.type = InternalMessage::Type::TopOfBook;
-  message.top_of_book.bid_price = event->bid_price;
-  message.top_of_book.bid_qty = event->bid_qty;
-  message.top_of_book.ask_price = event->ask_price;
-  message.top_of_book.ask_qty = event->ask_qty;
-
-  _queue.push(message);
+  _queue.push(TopOfBook{
+    event->bid_price,
+    event->bid_qty,
+    event->ask_price,
+    event->ask_qty,
+    event->price_exponent,
+    event->qty_exponent
+  });
 }

@@ -28,13 +28,16 @@ namespace ssl = boost::asio::ssl;
 namespace http = beast::http;
 using tcp = boost::asio::ip::tcp;
 
+using currency_pair = std::pair<std::string, std::string>;
+using namespace messages::internal;
+
 class BinanceClient
 {
   public:
-    static constexpr size_t QUEUE_CAPACITY = 64;
+    static constexpr size_t QUEUE_CAPACITY = 16;
 
-    BinanceClient(std::string_view base, std::string_view quote, std::string_view api_key, const int queue_fd) noexcept;
-    ~BinanceClient() = default;
+    BinanceClient(const currency_pair &pair, std::string_view api_key);
+    ~BinanceClient();
 
     void start(void) noexcept;
 
@@ -50,23 +53,26 @@ class BinanceClient
     void onSSLHandshake(const beast::error_code &ec);
     void onWSHandshake(const beast::error_code &ec);
     void onRead(const beast::error_code &ec);
-    void onControl(websocket::frame_type kind, std::string_view payload);
-    void onPing(const std::string_view payload);
+    void onControl(websocket::frame_type kind, std::string &&payload);
+    void onPing(std::string &&payload);
     void onPong(const beast::error_code &ec);
 
     void asyncRead(void);
     void processData(const std::span<const std::byte> data);
 
-    const std::string _base_currency;
-    const std::string _quote_currency;
+    using queue_type = ipq::SPSCQueue<TopOfBook, QUEUE_CAPACITY>;
+    using stream_type = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;
+
+    const currency_pair _pair;
     const std::string _api_key;
     uint8_t _price_exponent;
     uint8_t _qty_exponent;
     net::io_context _io_ctx;
     ssl::context _ssl_ctx;
     tcp::resolver _resolver;
-    websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
+    stream_type _ws_stream;
     beast::flat_buffer _read_buffer;
-    ipq::SPSCQueue<messages::InternalMessage, QUEUE_CAPACITY> _queue;
-    messages::InternalMessage _last_pair_info;
+    std::string _mem_name;
+    int _queue_fd;
+    queue_type _queue;
 };

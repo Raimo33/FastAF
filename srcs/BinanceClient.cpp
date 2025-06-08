@@ -1,9 +1,11 @@
 #include "BinanceClient.hpp"
-#include "Messages.hpp"
+#include "messages/BinanceMessages.hpp"
+#include "messages/InternalMessages.hpp"
+#include "macros.hpp"
 
-using namespace binance::sbe;
+//logging with individual SPSC queues (not IPC, using threads) (each message is a span object)
 
-BinanceClient::BinanceClient(std::string_view symbol, std::string_view api_key) noexcept :
+COLD BinanceClient::BinanceClient(std::string_view symbol, std::string_view api_key, const int queue_fd) noexcept :
   _symbol(symbol),
   _api_key(api_key),
   _price_exponent(0),
@@ -11,14 +13,14 @@ BinanceClient::BinanceClient(std::string_view symbol, std::string_view api_key) 
   _ssl_ctx(ssl::context::tlsv13_client),
   _resolver(_io_ctx),
   _ws_stream(_io_ctx, _ssl_ctx),
-  _read_buffer(8192)
+  _read_buffer(8192),
+  _queue(queue_fd)
 {
   _ssl_ctx.set_default_verify_paths();
   _ssl_ctx.set_verify_mode(ssl::verify_peer);
-  //set cypher list
 }
 
-void BinanceClient::start(void) noexcept
+COLD void BinanceClient::start(void) noexcept
 {
   _resolver.async_resolve(HOSTNAME, PORT,
     [this](const boost::system::error_code &ec, const tcp::resolver::results_type &results) {
@@ -28,11 +30,9 @@ void BinanceClient::start(void) noexcept
   _io_ctx.run();
 }
 
-void BinanceClient::onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results)
+COLD void BinanceClient::onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results)
 {
   assert(!ec);
-
-  //log
 
   auto &stream = beast::get_lowest_layer(_ws_stream);
 
@@ -42,12 +42,9 @@ void BinanceClient::onResolve(const beast::error_code &ec, const tcp::resolver::
     });
 }
 
-void BinanceClient::onConnect(const beast::error_code &ec, const tcp::resolver::results_type::endpoint_type &endpoint)
+COLD void BinanceClient::onConnect(const beast::error_code &ec, UNUSED const tcp::resolver::results_type::endpoint_type &endpoint)
 {
   assert(!ec);
-
-  //log
-  (void)endpoint;
 
   auto &stream = _ws_stream.next_layer();
   auto &socket = beast::get_lowest_layer(stream).socket();
@@ -60,11 +57,9 @@ void BinanceClient::onConnect(const beast::error_code &ec, const tcp::resolver::
     });
 }
 
-void BinanceClient::onSSLHandshake(const beast::error_code &ec)
+COLD void BinanceClient::onSSLHandshake(const beast::error_code &ec)
 {
   assert(!ec);
-
-  //log
 
   _ws_stream.set_option(websocket::stream_base::decorator(
     [this](websocket::request_type &req) {
@@ -77,79 +72,42 @@ void BinanceClient::onSSLHandshake(const beast::error_code &ec)
     });
 }
 
-void BinanceClient::onWSHandshake(const beast::error_code &ec)
+COLD void BinanceClient::onWSHandshake(const beast::error_code &ec)
 {
   assert(!ec);
-
-  //log
-  printf("WebSocket handshake successful for symbol: %s\n", _symbol.c_str());
-
-  std::string subscribe_msg = R"({
-    "method": "SUBSCRIBE",
-    "params": ["bestBidAsk@)" + _symbol + R"("],
-    "id": 1
-  })";
-
-  _ws_stream.async_write(boost::asio::buffer(subscribe_msg),
-    [this](const beast::error_code &ec, UNUSED const size_t bytes_transferred) {
-      onSubscribe(ec);
-    });
-}
-
-void BinanceClient::onSubscribe(const beast::error_code &ec)
-{
-  assert(!ec);
-
-  //log
 
   _ws_stream.control_callback(
-    [this](websocket::frame_type kind, std::string_view payload) {
-      onControl(kind, payload);
-    });
+  [this](websocket::frame_type kind, std::string_view payload) {
+    onControl(kind, payload);
+  });
 
   _ws_stream.binary(true);
 
-  asyncRead();
+  _ws_stream.async_read(_read_buffer,
+    [this](const beast::error_code &ec, size_t bytes_transferred) {
+      onRead(ec);
+    });
 }
 
-void BinanceClient::onRead(const beast::error_code &ec)
+HOT void BinanceClient::onRead(const beast::error_code &ec)
 {
   assert(!ec);
   assert(_ws_stream.got_binary());
 
   auto buffers = _read_buffer.data();
   const std::byte *ptr = static_cast<const std::byte *>(boost::asio::buffer_cast<const void*>(buffers));
-  const size_t total = boost::asio::buffer_size(buffers);
+  const size_t size = boost::asio::buffer_size(buffers);
 
-  size_t offset = 0;
-
-  while (true)
-  {
-    if (total - offset < sizeof(Header)) [[unlikely]]
-      break;
-
-    const auto *header = reinterpret_cast<const Header *>(ptr + offset);
-
-    size_t packet_size = sizeof(Header) + header->block_length;
-    if (total - offset < packet_size) [[unlikely]]
-      break;
-
-    offset += sizeof(Header);
-    const auto *payload = reinterpret_cast<const BestBidAskStreamEvent *>(ptr + offset);
-
-    packet_size = sizeof(BestBidAskStreamEvent) + payload->symbol_len;
-    if (total - offset < packet_size) [[unlikely]]
-      break;
-
-    processData({ptr + offset, packet_size});
-    offset += packet_size;
-  }
-
-  _read_buffer.consume(offset);
-  asyncRead();
+  processData({ptr, size});
+  _read_buffer.consume(size);
+  
+  _ws_stream.async_read(_read_buffer,
+    [this](const beast::error_code &ec, UNUSED size_t bytes_transferred) {
+      onRead(ec);
+    });
 }
 
-void BinanceClient::onControl(websocket::frame_type kind, std::string_view payload)
+HOT void BinanceClient::onControl(websocket::frame_type kind, std::string_view payload)
 {
   switch (kind)
   {
@@ -164,11 +122,9 @@ void BinanceClient::onControl(websocket::frame_type kind, std::string_view paylo
   }
 }
 
-void BinanceClient::onPing(std::string_view payload)
+HOT void BinanceClient::onPing(std::string_view payload)
 {
   websocket::ping_data pong_payload(payload); //useless copy, but required by the API
-
-  //log
 
   _ws_stream.async_pong(pong_payload,
     [this](const beast::error_code &ec) {
@@ -176,27 +132,31 @@ void BinanceClient::onPing(std::string_view payload)
     });
 }
 
-void BinanceClient::onPong(const beast::error_code &ec)
+HOT void BinanceClient::onPong(const beast::error_code &ec)
 {
   assert(!ec);
-
-  //log
 }
 
-size_t BinanceClient::processData(std::span<const std::byte> data)
+HOT void BinanceClient::processData(std::span<const std::byte> data)
 {
+  using namespace messages::binance::sbe;
+  using namespace messages::internal;
+
+  const Header *header = reinterpret_cast<const Header *>(data.data());
+  assert(header->template_id == 10001);
+
+  data = data.subspan(sizeof(Header));
+
   const BestBidAskStreamEvent *event = reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
   _price_exponent = event->price_exponent;
   _qty_exponent = event->qty_exponent;
 
-  _top_of_book.setBestBid(event->bid_price, event->bid_qty);
-  _top_of_book.setBestAsk(event->ask_price, event->ask_qty);
+  TopOfBook top_of_book{
+    event->bid_price,
+    event->bid_qty,
+    event->ask_price,
+    event->ask_qty
+  };
 
-  printf("Best Bid: %lu, Qty: %lu, Best Ask: %lu, Qty: %lu\n", 
-        _top_of_book.getBestBidPrice(),
-        _top_of_book.getBestBidQty(),
-        _top_of_book.getBestAskPrice(),
-        _top_of_book.getBestAskQty());
-
-  return sizeof(BestBidAskStreamEvent) + event->symbol_len;
+  _queue.push(top_of_book);
 }

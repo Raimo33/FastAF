@@ -1,7 +1,6 @@
 CMakeFiles/FastAF.dir/srcs/main.cpp.o: \
  /home/claudio/Desktop/FastAF/srcs/main.cpp /usr/include/stdc-predef.h \
  /home/claudio/Desktop/FastAF/incs/BinanceClient.hpp \
- /home/claudio/Desktop/FastAF/incs/TopOfBook.hpp \
  /usr/include/c++/13/cstdint \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
@@ -23,8 +22,6 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
- /usr/include/c++/13/type_traits \
- /home/claudio/Desktop/FastAF/incs/TopOfBook.inl \
  /usr/include/c++/13/string_view /usr/include/c++/13/bits/char_traits.h \
  /usr/include/c++/13/bits/postypes.h /usr/include/c++/13/cwchar \
  /usr/include/wchar.h /usr/include/x86_64-linux-gnu/bits/floatn.h \
@@ -38,9 +35,10 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
- /usr/include/c++/13/compare /usr/include/c++/13/concepts \
- /usr/include/c++/13/bits/stl_construct.h /usr/include/c++/13/new \
- /usr/include/c++/13/bits/exception.h /usr/include/c++/13/bits/move.h \
+ /usr/include/c++/13/type_traits /usr/include/c++/13/compare \
+ /usr/include/c++/13/concepts /usr/include/c++/13/bits/stl_construct.h \
+ /usr/include/c++/13/new /usr/include/c++/13/bits/exception.h \
+ /usr/include/c++/13/bits/move.h \
  /usr/include/c++/13/bits/stl_iterator_base_types.h \
  /usr/include/c++/13/bits/iterator_concepts.h \
  /usr/include/c++/13/bits/ptr_traits.h \
@@ -1509,6 +1507,5 @@ CMakeFiles/FastAF.dir/srcs/main.cpp.o: \
  /usr/include/boost/beast/core/flat_stream.hpp \
  /usr/include/boost/beast/core/detail/flat_stream.hpp \
  /usr/include/boost/beast/core/impl/flat_stream.hpp \
- /home/claudio/Desktop/FastAF/incs/BinanceClient.inl \
- /home/claudio/Desktop/FastAF/incs/macros.hpp \
- /home/claudio/Desktop/FastAF/incs/utils.hpp
+ /home/claudio/Desktop/FastAF/incs/utils.hpp \
+ /home/claudio/Desktop/FastAF/incs/macros.hpp

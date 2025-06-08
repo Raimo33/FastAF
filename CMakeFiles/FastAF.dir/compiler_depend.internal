@@ -4,11 +4,9 @@
 CMakeFiles/FastAF.dir/srcs/BinanceClient.cpp.o
  /home/claudio/Desktop/FastAF/srcs/BinanceClient.cpp
  /home/claudio/Desktop/FastAF/incs/BinanceClient.hpp
- /home/claudio/Desktop/FastAF/incs/BinanceClient.inl
- /home/claudio/Desktop/FastAF/incs/Messages.hpp
- /home/claudio/Desktop/FastAF/incs/TopOfBook.hpp
- /home/claudio/Desktop/FastAF/incs/TopOfBook.inl
  /home/claudio/Desktop/FastAF/incs/macros.hpp
+ /home/claudio/Desktop/FastAF/incs/messages/BinanceMessages.hpp
+ /home/claudio/Desktop/FastAF/incs/messages/InternalMessages.hpp
  /usr/include/alloca.h
  /usr/include/arpa/inet.h
  /usr/include/asm-generic/bitsperlong.h
@@ -1660,9 +1658,6 @@ CMakeFiles/FastAF.dir/srcs/BinanceClient.cpp.o
 CMakeFiles/FastAF.dir/srcs/main.cpp.o
  /home/claudio/Desktop/FastAF/srcs/main.cpp
  /home/claudio/Desktop/FastAF/incs/BinanceClient.hpp
- /home/claudio/Desktop/FastAF/incs/BinanceClient.inl
- /home/claudio/Desktop/FastAF/incs/TopOfBook.hpp
- /home/claudio/Desktop/FastAF/incs/TopOfBook.inl
  /home/claudio/Desktop/FastAF/incs/macros.hpp
  /home/claudio/Desktop/FastAF/incs/utils.hpp
  /usr/include/alloca.h

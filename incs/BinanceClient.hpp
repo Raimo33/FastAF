@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-08 13:31:29                                                
+last edited: 2025-06-08 18:58:46                                                
 
 ================================================================================*/
 
@@ -31,9 +31,9 @@ using tcp = boost::asio::ip::tcp;
 class BinanceClient
 {
   public:
-    using queue_type = ipq::SPSCQueue<messages::internal::TopOfBook, 64>; 
+    static constexpr size_t QUEUE_CAPACITY = 64;
 
-    BinanceClient(std::string_view symbol, std::string_view api_key, const int queue_fd) noexcept;
+    BinanceClient(std::string_view base, std::string_view quote, std::string_view api_key, const int queue_fd) noexcept;
     ~BinanceClient() = default;
 
     void start(void) noexcept;
@@ -57,7 +57,8 @@ class BinanceClient
     void asyncRead(void);
     void processData(const std::span<const std::byte> data);
 
-    const std::string _symbol;
+    const std::string _base_currency;
+    const std::string _quote_currency;
     const std::string _api_key;
     uint8_t _price_exponent;
     uint8_t _qty_exponent;
@@ -66,5 +67,6 @@ class BinanceClient
     tcp::resolver _resolver;
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
     beast::flat_buffer _read_buffer;
-    queue_type _queue;
+    ipq::SPSCQueue<messages::InternalMessage, QUEUE_CAPACITY> _queue;
+    messages::InternalMessage _last_pair_info;
 };

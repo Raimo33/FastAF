@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-08 13:31:29                                                
+last edited: 2025-06-08 18:58:46                                                
 
 ================================================================================*/
 
@@ -16,8 +16,9 @@ last edited: 2025-06-08 13:31:29
 
 //logging with individual SPSC queues (not IPC, using threads) (each message is a span object)
 
-COLD BinanceClient::BinanceClient(std::string_view symbol, std::string_view api_key, const int queue_fd) noexcept :
-  _symbol(symbol),
+COLD BinanceClient::BinanceClient(std::string_view base, std::string_view quote, std::string_view api_key, const int queue_fd) noexcept :
+  _base_currency(base),
+  _quote_currency(quote),
   _api_key(api_key),
   _price_exponent(0),
   _qty_exponent(0),
@@ -25,8 +26,13 @@ COLD BinanceClient::BinanceClient(std::string_view symbol, std::string_view api_
   _resolver(_io_ctx),
   _ws_stream(_io_ctx, _ssl_ctx),
   _read_buffer(8192),
-  _queue(queue_fd)
+  _queue(queue_fd),
+  _last_pair_info{}
 {
+  _last_pair_info.type = messages::InternalMessage::Type::PairInfo;
+  std::strncpy(_last_pair_info.pair_info.base_currency, _base_currency.data(), 8);
+  std::strncpy(_last_pair_info.pair_info.quote_currency, _quote_currency.data(), 8);
+
   _ssl_ctx.set_default_verify_paths();
   _ssl_ctx.set_verify_mode(ssl::verify_peer);
 }
@@ -77,7 +83,7 @@ COLD void BinanceClient::onSSLHandshake(const beast::error_code &ec)
       req.set("X-MBX-APIKEY", _api_key);
     }));
 
-  _ws_stream.async_handshake(HOSTNAME, "/ws/" + _symbol + "@bestBidAsk",
+  _ws_stream.async_handshake(HOSTNAME, "/ws/" + _base_currency + _quote_currency + "@bestBidAsk",
     [this](const beast::error_code &ec) {
       onWSHandshake(ec);
     });
@@ -148,10 +154,12 @@ HOT void BinanceClient::onPong(const beast::error_code &ec)
   assert(!ec);
 }
 
+//TODO REMOVE
+#include <iostream>
 HOT void BinanceClient::processData(std::span<const std::byte> data)
 {
   using namespace messages::binance::sbe;
-  using namespace messages::internal;
+  using namespace messages;
 
   const Header *header = reinterpret_cast<const Header *>(data.data());
   assert(header->template_id == 10001);
@@ -159,15 +167,25 @@ HOT void BinanceClient::processData(std::span<const std::byte> data)
   data = data.subspan(sizeof(Header));
 
   const BestBidAskStreamEvent *event = reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
-  _price_exponent = event->price_exponent;
-  _qty_exponent = event->qty_exponent;
 
-  TopOfBook top_of_book{
-    event->bid_price,
-    event->bid_qty,
-    event->ask_price,
-    event->ask_qty
-  };
+  bool info_changed = false;
+  info_changed |= (_last_pair_info.pair_info.price_exponent != event->price_exponent);
+  info_changed |= (_last_pair_info.pair_info.qty_exponent != event->qty_exponent);
 
-  _queue.push(top_of_book);
+  if (info_changed) [[unlikely]]
+  {
+    _last_pair_info.pair_info.price_exponent = event->price_exponent;
+    _last_pair_info.pair_info.qty_exponent = event->qty_exponent;
+
+    _queue.push(_last_pair_info);
+  }
+
+  InternalMessage message;
+  message.type = InternalMessage::Type::TopOfBook;
+  message.top_of_book.bid_price = event->bid_price;
+  message.top_of_book.bid_qty = event->bid_qty;
+  message.top_of_book.ask_price = event->ask_price;
+  message.top_of_book.ask_qty = event->ask_qty;
+
+  _queue.push(message);
 }

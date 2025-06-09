@@ -5,11 +5,11 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-08 18:58:46                                                
+last edited: 2025-06-09 11:30:42                                                
 
 ================================================================================*/
 
-#include "BinanceClient.hpp"
+#include "MarketDataClient.hpp"
 #include "utils.hpp"
 
 int main(int argc, char **argv)
@@ -23,6 +23,6 @@ int main(int argc, char **argv)
 
   currency_pair pair = utils::parse_pair(argv[1]);
 
-  BinanceClient client(pair, api_key);
+  MarketDataClient client(pair, api_key);
   client.start();
 }

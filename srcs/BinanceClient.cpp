@@ -1,26 +1,24 @@
 /*================================================================================
 
-File: BinanceClient.cpp                                                         
+File: MarketDataClient.cpp                                                         
 Creator: Claudio Raimondi                                                       
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-08 18:58:46                                                
+last edited: 2025-06-09 11:30:42                                                
 
 ================================================================================*/
 
-#include "BinanceClient.hpp"
+#include "MarketDataClient.hpp"
 #include "messages/BinanceMessages.hpp"
 #include "messages/InternalMessages.hpp"
 #include "macros.hpp"
 
 //logging with individual SPSC queues (not IPC, using threads) (each message is a span object)
 
-COLD BinanceClient::BinanceClient(const currency_pair &pair, std::string_view api_key) :
+COLD MarketDataClient::MarketDataClient(const currency_pair &pair, std::string_view api_key) :
   _pair(pair),
   _api_key(api_key),
-  _price_exponent(0),
-  _qty_exponent(0),
   _ssl_ctx(ssl::context::tlsv13_client),
   _resolver(_io_ctx),
   _ws_stream(_io_ctx, _ssl_ctx),
@@ -33,14 +31,14 @@ COLD BinanceClient::BinanceClient(const currency_pair &pair, std::string_view ap
   _ssl_ctx.set_verify_mode(ssl::verify_peer);
 }
 
-COLD BinanceClient::~BinanceClient()
+COLD MarketDataClient::~MarketDataClient()
 {
   _io_ctx.stop();
   close(_queue_fd);
   shm_unlink(_mem_name.c_str());
 }
 
-COLD void BinanceClient::start(void) noexcept
+COLD void MarketDataClient::start(void) noexcept
 {
   _resolver.async_resolve(HOSTNAME, PORT,
     [this](const boost::system::error_code &ec, const tcp::resolver::results_type &results) {
@@ -50,7 +48,7 @@ COLD void BinanceClient::start(void) noexcept
   _io_ctx.run();
 }
 
-COLD void BinanceClient::onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results)
+COLD void MarketDataClient::onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results)
 {
   assert(!ec);
 
@@ -62,7 +60,7 @@ COLD void BinanceClient::onResolve(const beast::error_code &ec, const tcp::resol
     });
 }
 
-COLD void BinanceClient::onConnect(const beast::error_code &ec, UNUSED const tcp::resolver::results_type::endpoint_type &endpoint)
+COLD void MarketDataClient::onConnect(const beast::error_code &ec, UNUSED const tcp::resolver::results_type::endpoint_type &endpoint)
 {
   assert(!ec);
 
@@ -77,7 +75,7 @@ COLD void BinanceClient::onConnect(const beast::error_code &ec, UNUSED const tcp
     });
 }
 
-COLD void BinanceClient::onSSLHandshake(const beast::error_code &ec)
+COLD void MarketDataClient::onSSLHandshake(const beast::error_code &ec)
 {
   assert(!ec);
 
@@ -94,7 +92,7 @@ COLD void BinanceClient::onSSLHandshake(const beast::error_code &ec)
     });
 }
 
-COLD void BinanceClient::onWSHandshake(const beast::error_code &ec)
+COLD void MarketDataClient::onWSHandshake(const beast::error_code &ec)
 {
   assert(!ec);
 
@@ -105,33 +103,59 @@ COLD void BinanceClient::onWSHandshake(const beast::error_code &ec)
 
   _ws_stream.binary(true);
 
-  //TODO first read to initialize _price_exponent and _qty_exponent
-
   _ws_stream.async_read(_read_buffer,
     [this](const beast::error_code &ec, size_t UNUSED bytes_transferred) {
-      onRead(ec);
+      onFirstRead(ec);
     });
 }
 
-HOT void BinanceClient::onRead(const beast::error_code &ec)
+COLD void MarketDataClient::onFirstRead(const beast::error_code &ec)
 {
   assert(!ec);
   assert(_ws_stream.got_binary());
 
-  auto buffers = _read_buffer.data();
-  const std::byte *ptr = static_cast<const std::byte *>(boost::asio::buffer_cast<const void*>(buffers));
-  const size_t size = boost::asio::buffer_size(buffers);
+  std::span<const std::byte> data = getSpan(_read_buffer);
 
-  processData({ptr, size});
-  _read_buffer.consume(size);
-  
-  _ws_stream.async_read(_read_buffer,
-    [this](const beast::error_code &ec, UNUSED size_t bytes_transferred) {
-      onRead(ec);
-    });
+  const auto &event = getEvent(data);
+  _price_exponent = event.price_exponent;
+  _qty_exponent = event.qty_exponent;
+
+  InternalMessage m;
+  std::strncpy(m.pair_info.base_currency, _pair.first.data(), 8);
+  std::strncpy(m.pair_info.quote_currency, _pair.second.data(), 8);
+  m.pair_info.price_exponent = _price_exponent;
+  m.pair_info.qty_exponent = _qty_exponent;
+
+  _queue.push(m);
+  asyncRead();
 }
 
-HOT void BinanceClient::onControl(websocket::frame_type kind, std::string &&payload)
+HOT void MarketDataClient::onRead(const beast::error_code &ec)
+{
+  assert(!ec);
+  assert(_ws_stream.got_binary());
+
+  std::span<const std::byte> data = getSpan(_read_buffer);
+  
+  const auto &event = getEvent(data);
+  assert((event.price_exponent == _price_exponent) & (event.qty_exponent == _qty_exponent));
+
+  _queue.push(InternalMessage{
+    .top_of_book = {
+      event.bid_price,
+      event.bid_qty,
+      event.ask_price,
+      event.ask_qty,
+      event.price_exponent,
+      event.qty_exponent
+    }
+  });
+
+  _read_buffer.consume(data.size());
+  asyncRead();
+}
+
+HOT void MarketDataClient::onControl(websocket::frame_type kind, std::string &&payload)
 {
   switch (kind)
   {
@@ -146,7 +170,7 @@ HOT void BinanceClient::onControl(websocket::frame_type kind, std::string &&payl
   }
 }
 
-HOT void BinanceClient::onPing(std::string &&payload)
+HOT void MarketDataClient::onPing(std::string &&payload)
 {
   websocket::ping_data pong_payload(std::move(payload));
 
@@ -156,36 +180,40 @@ HOT void BinanceClient::onPing(std::string &&payload)
     });
 }
 
-HOT void BinanceClient::onPong(const beast::error_code &ec)
+HOT void MarketDataClient::onPong(const beast::error_code &ec)
 {
   assert(!ec);
 }
 
-HOT void BinanceClient::processData(std::span<const std::byte> data)
+COLD void MarketDataClient::onClose(void)
 {
-  using namespace messages::binance::sbe;
-  using namespace messages::internal;
+  _io_ctx.stop();
+}
 
-  const Header *header = reinterpret_cast<const Header *>(data.data());
-  assert(header->template_id == 10001);
+HOT std::span<const std::byte> MarketDataClient::getSpan(const beast::flat_buffer &buffer)
+{
+  auto buffers = buffer.data();
+  const std::byte *ptr = static_cast<const std::byte *>(boost::asio::buffer_cast<const void*>(buffers));
+  const size_t size = boost::asio::buffer_size(buffers);
+
+  return {ptr, size};
+}
+
+HOT const BestBidAskStreamEvent &MarketDataClient::getEvent(std::span<const std::byte> data)
+{  
+  const Header &header = *reinterpret_cast<const Header *>(data.data());
+  assert(header.template_id == 10001);
 
   data = data.subspan(sizeof(Header));
 
-  const BestBidAskStreamEvent *event = reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
-
-  assert((event->price_exponent == _price_exponent) & (event->qty_exponent == _qty_exponent));
-
-  _queue.push(TopOfBook{
-    event->bid_price,
-    event->bid_qty,
-    event->ask_price,
-    event->ask_qty,
-    event->price_exponent,
-    event->qty_exponent
-  });
+  const BestBidAskStreamEvent &event = *reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
+  return event;
 }
 
-COLD void BinanceClient::onClose(void)
+HOT void MarketDataClient::asyncRead(void)
 {
-  _io_ctx.stop();
+  _ws_stream.async_read(_read_buffer,
+    [this](const beast::error_code &ec, UNUSED size_t bytes_transferred) {
+      onRead(ec);
+    });
 }

@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-08 18:58:46                                                
+last edited: 2025-06-09 11:30:42                                                
 
 ================================================================================*/
 
@@ -41,14 +41,27 @@ COLD ArbitrageScanner::~ArbitrageScanner(void)
 
 COLD void ArbitrageScanner::start(void)
 {
+  getFirstMessages();
+
   while (true)
   {
     #pragma GCC unroll 3
     for (uint8_t i = 0; i < 3; ++i)
-      checkArbitrage(_queues[i].pop(_tops_of_book[i]));
+      checkArbitrage(!_queues[i].pop(_last_messages[i]));
   }
 
   std::unreachable();
+}
+
+COLD void ArbitrageScanner::getFirstMessages(void)
+{
+  for (uint8_t i = 0; i < 3; ++i)
+  {
+    while (!_queues[i].pop(_last_messages[i]))
+      std::yield();
+
+    
+  }
 }
 
 HOT void ArbitrageScanner::checkArbitrage(const bool no_op)

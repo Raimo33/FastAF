@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(producer
   srcs/producer.cpp
-  srcs/BinanceClient.cpp
+  srcs/MarketDataClient.cpp
   srcs/utils.cpp
 )
 

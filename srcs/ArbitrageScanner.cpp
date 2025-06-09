@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 12:36:36                                                
+last edited: 2025-06-09 16:10:34                                                
 
 ================================================================================*/
 
@@ -14,6 +14,13 @@ last edited: 2025-06-09 12:36:36
 
 #include <utility>
 #include <thread>
+
+/*
+  p1 * e1 + p2 * e2 + p3 * e3 > 1
+  p1 * p1 * p3 > 10^(e1 + e2 + e3)
+  log2(p1) + log2(p2) + log2(p3) > log2(10^(e1 + e2 + e3))
+  log2(p1) + log2(p2) + log2(p3) > (e1 + e2 + e3) * log2(10)
+*/
 
 COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pairs) :
   _mem_names{
@@ -30,8 +37,7 @@ COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pair
     queue_type(_queue_fds[0]),
     queue_type(_queue_fds[1]),
     queue_type(_queue_fds[2])
-  },
-  _combined_price_exponent(0)
+  }
 {
 }
 
@@ -71,7 +77,8 @@ COLD void ArbitrageScanner::getFirstMessages(void)
     combined_exponent += pair_info.price_exponent;
   }
 
-  _price_scale_factor = std::pow(10, combined_exponent);
+  static constexpr double LOG2_10 = 3.3219280948873626;
+  _price_threshold = price_type(combined_exponent * LOG2_10);
 }
 
 HOT void ArbitrageScanner::checkArbitrage(const bool no_op)
@@ -85,20 +92,15 @@ HOT void ArbitrageScanner::checkArbitrage(const bool no_op)
 
   bool is_arbitrage = false;
 
-  static constexpr auto mul = [](uint64_t a, uint64_t b, uint64_t c) -> __uint128_t {
-    return (__uint128_t)a * b * c;
+  constexpr auto log2 = [](auto x) {
+    return price_type::log2(x);
   };
 
-  //simdify
-  const __uint128_t product1 = mul(tob0.bid_price, tob1.ask_price, tob2.bid_price);
-  const __uint128_t product2 = mul(tob2.bid_price, tob1.ask_price, tob0.bid_price);
-  const __uint128_t product3 = mul(tob2.bid_price, tob0.ask_price, tob1.bid_price);
-  const __uint128_t product4 = mul(tob1.bid_price, tob2.ask_price, tob0.bid_price);
-  const __uint128_t product5 = mul(tob2.bid_price, tob0.ask_price, tob1.bid_price);
-  const __uint128_t product6 = mul(tob1.bid_price, tob0.ask_price, tob2.bid_price);
+  const price_type path1 = log2(tob0.bid_price) + log2(tob1.ask_price) + log2(tob2.bid_price); // A→B→C→A
+  const price_type path2 = log2(tob0.ask_price) + log2(tob1.bid_price) + log2(tob2.ask_price); // A←B←C←A
 
-  //simdify
-  is_arbitrage = (product1 + product2 + product3 + product4 + product5 + product6) > 6 * _price_scale_factor;
+  is_arbitrage = (path1 > _price_threshold) | (path2 > _price_threshold);
 
+  if (is_arbitrage)
+    printf("Arbitrage detected!\n");
 }
-

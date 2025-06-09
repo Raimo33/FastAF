@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 12:36:36                                                
+last edited: 2025-06-09 16:10:34                                                
 
 ================================================================================*/
 
@@ -48,6 +48,9 @@ class MarketDataClient
     MarketDataClient(const MarketDataClient &) = delete;
     MarketDataClient &operator=(const MarketDataClient &) = delete;
 
+    using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
+    using stream_type = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;
+
     void onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results);
     void onConnect(const beast::error_code &ec, const tcp::resolver::results_type::endpoint_type &endpoint);
     void onSSLHandshake(const beast::error_code &ec);
@@ -62,9 +65,6 @@ class MarketDataClient
     void asyncRead(void);
 
     static std::span<const std::byte> getSpan(const beast::flat_buffer &buffer);
-
-    using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
-    using stream_type = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;
 
     const currency_pair _pair;
     uint8_t _price_exponent;

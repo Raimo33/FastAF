@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 12:36:36                                                
+last edited: 2025-06-09 16:10:33                                                
 
 ================================================================================*/
 
@@ -15,6 +15,7 @@ last edited: 2025-06-09 12:36:36
 #include <array>
 #include <string>
 
+#include "FixedPoint.hpp"
 #include "ipq/SPSCQueue.hpp"
 #include "messages/InternalMessages.hpp"
 
@@ -35,10 +36,11 @@ class ArbitrageScanner
     ArbitrageScanner(const ArbitrageScanner &) = delete;
     ArbitrageScanner &operator=(const ArbitrageScanner &) = delete;
 
+    using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
+    using price_type = FixedPoint<8, 24>;
+
     void getFirstMessages(void);
     void checkArbitrage(const bool no_op);
-
-    using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
 
     std::array<std::string, 3> _mem_names;
     std::array<int, 3> _queue_fds;
@@ -47,5 +49,5 @@ class ArbitrageScanner
     std::array<InternalMessage, 3> _last_messages;
     std::array<uint8_t, 3> _price_exponents;
     std::array<uint8_t, 3> _qty_exponents;
-    __uint128_t _price_scale_factor;
+    price_type _price_threshold;
 };

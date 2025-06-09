@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 11:30:42                                                
+last edited: 2025-06-09 12:36:36                                                
 
 ================================================================================*/
 
@@ -35,6 +35,7 @@ class ArbitrageScanner
     ArbitrageScanner(const ArbitrageScanner &) = delete;
     ArbitrageScanner &operator=(const ArbitrageScanner &) = delete;
 
+    void getFirstMessages(void);
     void checkArbitrage(const bool no_op);
 
     using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
@@ -44,4 +45,7 @@ class ArbitrageScanner
     std::array<queue_type, 3> _queues;
     //execution stream (Binance client executor) (the pair names are available in the constructor in the correct order  )
     std::array<InternalMessage, 3> _last_messages;
+    std::array<uint8_t, 3> _price_exponents;
+    std::array<uint8_t, 3> _qty_exponents;
+    __uint128_t _price_scale_factor;
 };

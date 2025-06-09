@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 11:30:42                                                
+last edited: 2025-06-09 12:36:36                                                
 
 ================================================================================*/
 
@@ -33,9 +33,6 @@ union InternalMessage
     uint64_t bid_qty;
     uint64_t ask_price;
     uint64_t ask_qty;
-    //could be pushed once every change
-    uint8_t price_exponent;
-    uint8_t qty_exponent;
   } top_of_book;
 
   struct PairInfo

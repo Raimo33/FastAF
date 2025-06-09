@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 11:30:42                                                 
-last edited: 2025-06-09 11:30:42                                                
+last edited: 2025-06-09 12:36:36                                                
 
 ================================================================================*/
 
@@ -28,7 +28,7 @@ union SBEMessage
     little_uint16_t template_id;
     little_uint16_t schema_id;
     little_uint16_t version;
-  };
+  } header;
 
   struct BestBidAskStreamEvent
   {
@@ -42,7 +42,7 @@ union SBEMessage
     little_uint64_t ask_qty;
     uint8_t symbol_len;
     //variable length symbol string
-  };
+  } best_bid_ask_stream_event;
 };
 
 } // namespace messages

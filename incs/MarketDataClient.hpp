@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 11:30:42                                                
+last edited: 2025-06-09 12:36:36                                                
 
 ================================================================================*/
 
@@ -19,7 +19,6 @@ last edited: 2025-06-09 11:30:42
 #include <boost/beast/ssl/ssl_stream.hpp>
 
 #include "ipq/SPSCQueue.hpp"
-#include "messages/BinanceMessages.hpp"
 #include "messages/InternalMessages.hpp"
 
 namespace beast = boost::beast;
@@ -30,7 +29,6 @@ namespace http = beast::http;
 using tcp = boost::asio::ip::tcp;
 
 using currency_pair = std::pair<std::string, std::string>;
-using namespace messages::binance::sbe;
 using namespace messages;
 
 class MarketDataClient
@@ -64,7 +62,6 @@ class MarketDataClient
     void asyncRead(void);
 
     static std::span<const std::byte> getSpan(const beast::flat_buffer &buffer);
-    static const BestBidAskStreamEvent &getEvent(std::span<const std::byte> data);
 
     using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
     using stream_type = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;

@@ -5,12 +5,12 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 11:30:42                                                
+last edited: 2025-06-09 12:36:36                                                
 
 ================================================================================*/
 
 #include "MarketDataClient.hpp"
-#include "messages/BinanceMessages.hpp"
+#include "messages/SBEMessages.hpp"
 #include "messages/InternalMessages.hpp"
 #include "macros.hpp"
 
@@ -116,7 +116,10 @@ COLD void MarketDataClient::onFirstRead(const beast::error_code &ec)
 
   std::span<const std::byte> data = getSpan(_read_buffer);
 
-  const auto &event = getEvent(data);
+  const auto &message = *reinterpret_cast<const SBEMessage *>(data.data());
+  assert(message.header.template_id == 10001);
+  const auto &event = message.best_bid_ask_stream_event;
+
   _price_exponent = event.price_exponent;
   _qty_exponent = event.qty_exponent;
 
@@ -137,7 +140,9 @@ HOT void MarketDataClient::onRead(const beast::error_code &ec)
 
   std::span<const std::byte> data = getSpan(_read_buffer);
   
-  const auto &event = getEvent(data);
+  const auto &message = *reinterpret_cast<const SBEMessage *>(data.data());
+  assert(message.header.template_id == 10001);
+  const auto &event = message.best_bid_ask_stream_event;
   assert((event.price_exponent == _price_exponent) & (event.qty_exponent == _qty_exponent));
 
   _queue.push(InternalMessage{
@@ -146,8 +151,6 @@ HOT void MarketDataClient::onRead(const beast::error_code &ec)
       event.bid_qty,
       event.ask_price,
       event.ask_qty,
-      event.price_exponent,
-      event.qty_exponent
     }
   });
 
@@ -197,17 +200,6 @@ HOT std::span<const std::byte> MarketDataClient::getSpan(const beast::flat_buffe
   const size_t size = boost::asio::buffer_size(buffers);
 
   return {ptr, size};
-}
-
-HOT const BestBidAskStreamEvent &MarketDataClient::getEvent(std::span<const std::byte> data)
-{  
-  const Header &header = *reinterpret_cast<const Header *>(data.data());
-  assert(header.template_id == 10001);
-
-  data = data.subspan(sizeof(Header));
-
-  const BestBidAskStreamEvent &event = *reinterpret_cast<const BestBidAskStreamEvent *>(data.data());
-  return event;
 }
 
 HOT void MarketDataClient::asyncRead(void)

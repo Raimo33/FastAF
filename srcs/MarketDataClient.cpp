@@ -23,9 +23,6 @@ COLD MarketDataClient::MarketDataClient(const currency_pair &pair, std::string_v
   _resolver(_io_ctx),
   _ws_stream(_io_ctx, _ssl_ctx),
   _read_buffer(1024),
-  _mem_name("/binance_" + _pair.first + _pair.second + "_queue"),
-  _queue_fd(shm_open(_mem_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666)),
-  _queue(_queue_fd)
 {
   _ssl_ctx.set_default_verify_paths();
   _ssl_ctx.set_verify_mode(ssl::verify_peer);
@@ -34,8 +31,6 @@ COLD MarketDataClient::MarketDataClient(const currency_pair &pair, std::string_v
 COLD MarketDataClient::~MarketDataClient()
 {
   _io_ctx.stop();
-  close(_queue_fd);
-  shm_unlink(_mem_name.c_str());
 }
 
 COLD void MarketDataClient::start(void) noexcept
@@ -123,13 +118,11 @@ COLD void MarketDataClient::onFirstRead(const beast::error_code &ec)
   _price_exponent = event.price_exponent;
   _qty_exponent = event.qty_exponent;
 
-  InternalMessage m;
-  std::strncpy(m.pair_info.base_currency, _pair.first.data(), 8);
-  std::strncpy(m.pair_info.quote_currency, _pair.second.data(), 8);
-  m.pair_info.price_exponent = _price_exponent;
-  m.pair_info.qty_exponent = _qty_exponent;
+  _info_snapshot.emplace(
+    _price_exponent,
+    _qty_exponent,
+  );
 
-  _queue.push(m);
   asyncRead();
 }
 
@@ -150,14 +143,12 @@ HOT void MarketDataClient::onRead(const beast::error_code &ec)
     (event.qty_exponent == _qty_exponent)
   );
 
-  _queue.push(InternalMessage{
-    .top_of_book = {
+  _book_snapshot.emplace(
       event.bid_price,
       event.bid_qty,
       event.ask_price,
       event.ask_qty,
-    }
-  });
+  );
 
   _read_buffer.consume(data.size());
   asyncRead();

@@ -18,7 +18,7 @@ last edited: 2025-06-09 20:09:32
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/ssl/ssl_stream.hpp>
 
-#include "ipq/SPSCQueue.hpp"
+#include "SharedSnapshot.hpp"
 #include "messages/InternalMessages.hpp"
 
 namespace beast = boost::beast;
@@ -29,13 +29,11 @@ namespace http = beast::http;
 using tcp = boost::asio::ip::tcp;
 
 using currency_pair = std::pair<std::string, std::string>;
-using namespace messages;
+using namespace messages::internal;
 
 class MarketDataClient
 {
   public:
-    static constexpr size_t QUEUE_CAPACITY = 64;
-
     MarketDataClient(const currency_pair &pair, std::string_view api_key);
     ~MarketDataClient();
 
@@ -46,10 +44,8 @@ class MarketDataClient
 
   private:
     MarketDataClient(const MarketDataClient &) = delete;
+    MarketDataClient(MarketDataClient &&) = delete;
     MarketDataClient &operator=(const MarketDataClient &) = delete;
-
-    using queue_type = ipq::SPSCQueue<InternalMessage, QUEUE_CAPACITY>;
-    using stream_type = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;
 
     void onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results);
     void onConnect(const beast::error_code &ec, const tcp::resolver::results_type::endpoint_type &endpoint);
@@ -73,9 +69,8 @@ class MarketDataClient
     net::io_context _io_ctx;
     ssl::context _ssl_ctx;
     tcp::resolver _resolver;
-    stream_type _ws_stream;
+    websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
     beast::flat_buffer _read_buffer;
-    std::string _mem_name;
-    int _queue_fd;
-    queue_type _queue;
+    SharedSnapshot<TopOfBook> _book_snapshot;
+    SharedSnapshot<PairInfo> _info_snapshot;
 };

@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-05-12 18:01:10                                                 
-last edited: 2025-06-08 13:31:29                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -25,32 +25,33 @@ class SPMCQueue : public IQueueCRTP<SPMCQueue<Item, Capacity>, Item, Capacity>
   using Base::flush_mask;
 
   public:
-    explicit SPMCQueue(const int fd) : Base(fd) {}
+    explicit SPMCQueue(const int fd) :
+      Base(fd),
+      _local_write_idx(0),
+      _cached_write_idx(0) {}
 
     template <typename ForwardItem>
     void push_impl(ForwardItem &&item) noexcept
     {
-      static thread_local size_t local_write_idx;
+      data->buffer[_local_write_idx & wrap_mask] = std::forward<ForwardItem>(item);
 
-      data->buffer[local_write_idx & wrap_mask] = std::forward<ForwardItem>(item);
+      //TODO FIX this slows the consumer
+      if ((_local_write_idx & flush_mask) == 0) [[unlikely]]
+        data->write_idx.store(_local_write_idx + 1, std::memory_order_release);
 
-      if ((local_write_idx & flush_mask) == 0) [[unlikely]]
-        data->write_idx.store(local_write_idx + 1, std::memory_order_release);
-
-      local_write_idx++;
+      _local_write_idx++;
     }
 
     bool pop_impl(Item &out) noexcept
     {
-      static thread_local size_t cached_write_idx;
       size_t local_read_idx = data->read_idx.load(std::memory_order_relaxed);
 
       while (true)
       {
-        if (local_read_idx == cached_write_idx) [[unlikely]]
+        if (local_read_idx == _cached_write_idx) [[unlikely]]
         {
-          cached_write_idx = data->write_idx.load(std::memory_order_acquire);
-          if (local_read_idx == cached_write_idx) [[unlikely]]
+          _cached_write_idx = data->write_idx.load(std::memory_order_acquire);
+          if (local_read_idx == _cached_write_idx) [[unlikely]]
             return false;
         }
 
@@ -66,6 +67,9 @@ class SPMCQueue : public IQueueCRTP<SPMCQueue<Item, Capacity>, Item, Capacity>
       std::unreachable();
     }
 
+  private:
+    size_t _local_write_idx = 0;
+    size_t _cached_write_idx = 0;
 };
 
 }

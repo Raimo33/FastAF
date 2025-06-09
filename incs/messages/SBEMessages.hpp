@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 11:30:42                                                 
-last edited: 2025-06-09 12:36:36                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -20,7 +20,7 @@ using namespace boost::endian;
 namespace messages
 {
 
-union SBEMessage
+struct SBEMessage
 {
   struct Header
   {
@@ -34,12 +34,12 @@ union SBEMessage
   {
     little_uint64_t event_time;
     little_uint64_t book_update_id;
-    uint8_t price_exponent;
-    uint8_t qty_exponent;
-    little_uint64_t bid_price;
-    little_uint64_t bid_qty;
-    little_uint64_t ask_price;
-    little_uint64_t ask_qty;
+    int8_t price_exponent;
+    int8_t qty_exponent;
+    little_int64_t bid_price;
+    little_int64_t bid_qty;
+    little_int64_t ask_price;
+    little_int64_t ask_qty;
     uint8_t symbol_len;
     //variable length symbol string
   } best_bid_ask_stream_event;

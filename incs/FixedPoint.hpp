@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:33                                                 
-last edited: 2025-06-09 16:10:33                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -13,11 +13,13 @@ last edited: 2025-06-09 16:10:33
 
 #include <cstdint>
 #include <array>
+#include <ostream>
 
 template <uint8_t IntegerBits, uint8_t FractionalBits = (32 - IntegerBits)>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 class FixedPoint
 {
+  static_assert(IntegerBits + FractionalBits <= 32, "Total bits must not exceed 32");
+
   public:
     constexpr FixedPoint(void) noexcept;
     explicit constexpr FixedPoint(const int32_t integer) noexcept;
@@ -77,5 +79,8 @@ class FixedPoint
     static constexpr int32_t FRACTION_MASK = SCALE - 1;
     static constexpr int32_t MAX_INTEGER_VALUE = 1u << IntegerBits;
 };
+
+template <uint8_t IntegerBits, uint8_t FractionalBits>
+inline std::ostream &operator<<(std::ostream &os, const FixedPoint<IntegerBits, FractionalBits> &value) noexcept;
 
 #include "FixedPoint.tpp"

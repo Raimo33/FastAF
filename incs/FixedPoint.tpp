@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:34                                                 
-last edited: 2025-06-09 16:10:34                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -16,32 +16,26 @@ last edited: 2025-06-09 16:10:34
 #include <cmath>
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 constexpr FixedPoint<IntegerBits, FractionalBits>::FixedPoint(void) noexcept
   : _value(0) {}
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 constexpr FixedPoint<IntegerBits, FractionalBits>::FixedPoint(const int32_t integer) noexcept
   : _value(integer << FractionalBits) {}
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 constexpr FixedPoint<IntegerBits, FractionalBits>::FixedPoint(const double floating_point) noexcept
   : _value(static_cast<int32_t>(floating_point * SCALE)) {}
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 constexpr FixedPoint<IntegerBits, FractionalBits>::FixedPoint(const FixedPoint &other) noexcept
   : _value(other._value) {}
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 constexpr FixedPoint<IntegerBits, FractionalBits>::FixedPoint(const FixedPoint &&other) noexcept
   : _value(other._value) {}
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator=(const FixedPoint &other) noexcept
 {
   if (this != &other)
@@ -51,7 +45,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator=(const int32_t integer) noexcept
 {
   _value = integer << FractionalBits;
@@ -59,7 +52,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator=(const double floating_point) noexcept
 {
   _value = static_cast<int32_t>(floating_point * SCALE);
@@ -67,49 +59,42 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits>::operator int(void) const noexcept
 {
   return static_cast<int>(_value >> FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits>::operator double(void) const noexcept
 {
   return static_cast<double>(_value) / SCALE;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator+(const FixedPoint &other) const noexcept
 {
   return FixedPoint(_value + other._value);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator+(const int32_t value) const noexcept
 {
   return FixedPoint(_value + (value << FractionalBits));
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator-(const FixedPoint &other) const noexcept
 {
   return FixedPoint(_value - other._value);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator-(const int32_t value) const noexcept
 {
   return FixedPoint(_value - (value << FractionalBits));
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator*(const FixedPoint &other) const noexcept
 {
   const int64_t product = static_cast<int64_t>(_value) * other._value;
@@ -117,14 +102,12 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits,
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator*(const int32_t value) const noexcept
 {
   return FixedPoint((_value * value) >> FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator/(const FixedPoint &other) const noexcept
 {
   const int64_t numerator = static_cast<int64_t>(_value) << FractionalBits;
@@ -133,14 +116,12 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits,
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::operator/(const int32_t value) const noexcept
 {
   return FixedPoint((_value << FractionalBits) / value);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator+=(const FixedPoint &other) noexcept
 {
   _value += other._value;
@@ -148,7 +129,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator+=(const int32_t value) noexcept
 {
   _value += (value << FractionalBits);
@@ -156,7 +136,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator-=(const FixedPoint &other) noexcept
 {
   _value -= other._value;
@@ -164,7 +143,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator-=(const int32_t value) noexcept
 {
   _value -= (value << FractionalBits);
@@ -172,7 +150,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator*=(const FixedPoint &other) noexcept
 {
   const int64_t product = static_cast<int64_t>(_value) * other._value;
@@ -181,7 +158,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator*=(const int32_t value) noexcept
 {
   _value = (_value * value) >> FractionalBits;
@@ -189,7 +165,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator/=(const FixedPoint &other) noexcept
 {
   const int64_t numerator = static_cast<int64_t>(_value) << FractionalBits;
@@ -198,7 +173,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits, FractionalBits>::operator/=(const int32_t value) noexcept
 {
   _value = (_value << FractionalBits) / value;
@@ -206,112 +180,96 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> &FixedPoint<IntegerBits
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator==(const FixedPoint &other) const noexcept
 {
   return _value == other._value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator==(const int32_t value) const noexcept
 {
   return _value == (value << FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator!=(const FixedPoint &other) const noexcept
 {
   return _value != other._value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator!=(const int32_t value) const noexcept
 {
   return _value != (value << FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator<(const FixedPoint &other) const noexcept
 {
   return _value < other._value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator<(const int32_t value) const noexcept
 {
   return _value < (value << FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator<=(const FixedPoint &other) const noexcept
 {
   return _value <= other._value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator<=(const int32_t value) const noexcept
 {
   return _value <= (value << FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator>(const FixedPoint &other) const noexcept
 {
   return _value > other._value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator>(const int32_t value) const noexcept
 {
   return _value > (value << FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator>=(const FixedPoint &other) const noexcept
 {
   return _value >= other._value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr bool FixedPoint<IntegerBits, FractionalBits>::operator>=(const int32_t value) const noexcept
 {
   return _value >= (value << FractionalBits);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr int32_t FixedPoint<IntegerBits, FractionalBits>::raw_value(void) const noexcept
 {
   return _value;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr int32_t FixedPoint<IntegerBits, FractionalBits>::integer_part(void) const noexcept
 {
   return _value >> FractionalBits;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr int32_t FixedPoint<IntegerBits, FractionalBits>::fractional_part(void) const noexcept
 {
   return _value & FRACTION_MASK;
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::fromRaw(const int32_t raw_value) noexcept
 {
   FixedPoint result;
@@ -320,7 +278,6 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits,
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::log2(const uint64_t value) noexcept
 {
   const uint32_t integer_log2 = 63 - __builtin_clzll(value);
@@ -349,15 +306,20 @@ constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, Fracti
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr std::array<FixedPoint<IntegerBits, FractionalBits>, 4> FixedPoint<IntegerBits, FractionalBits>::log2(const std::array<uint64_t, 4> &values) noexcept
 {
   //TODO SIMD
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>
-  requires(IntegerBits > 0 && IntegerBits + FractionalBits == 32)
 inline constexpr std::array<FixedPoint<IntegerBits, FractionalBits>, 8> FixedPoint<IntegerBits, FractionalBits>::log2(const std::array<uint64_t, 8> &values) noexcept
 {
   //TODO SIMD
+}
+
+template <uint8_t IntegerBits, uint8_t FractionalBits>
+inline std::ostream &operator<<(std::ostream &os, const FixedPoint<IntegerBits, FractionalBits> &fp) noexcept
+{
+  os << static_cast<double>(fp);
+  return os;
 }

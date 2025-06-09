@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 12:36:36                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -139,11 +139,16 @@ HOT void MarketDataClient::onRead(const beast::error_code &ec)
   assert(_ws_stream.got_binary());
 
   std::span<const std::byte> data = getSpan(_read_buffer);
-  
+
   const auto &message = *reinterpret_cast<const SBEMessage *>(data.data());
-  assert(message.header.template_id == 10001);
+  const auto &header = message.header;
   const auto &event = message.best_bid_ask_stream_event;
-  assert((event.price_exponent == _price_exponent) & (event.qty_exponent == _qty_exponent));
+
+  assert(
+    (header.template_id == 10001) &
+    (event.price_exponent == _price_exponent) &
+    (event.qty_exponent == _qty_exponent)
+  );
 
   _queue.push(InternalMessage{
     .top_of_book = {

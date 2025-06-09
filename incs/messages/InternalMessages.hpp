@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 12:36:36                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -29,10 +29,10 @@ union InternalMessage
   struct TopOfBook
   {
     static constexpr MessageType type = MessageType::TopOfBook;
-    uint64_t bid_price;
-    uint64_t bid_qty;
-    uint64_t ask_price;
-    uint64_t ask_qty;
+    int64_t bid_price;
+    int64_t bid_qty;
+    int64_t ask_price;
+    int64_t ask_qty;
   } top_of_book;
 
   struct PairInfo
@@ -40,8 +40,8 @@ union InternalMessage
     static constexpr MessageType type = MessageType::PairInfo;
     char base_currency[8];
     char quote_currency[8];
-    uint8_t price_exponent;
-    uint8_t qty_exponent;
+    int8_t price_exponent;
+    int8_t qty_exponent;
   } pair_info;
 };
 

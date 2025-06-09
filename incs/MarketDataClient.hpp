@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 16:10:34                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -67,8 +67,8 @@ class MarketDataClient
     static std::span<const std::byte> getSpan(const beast::flat_buffer &buffer);
 
     const currency_pair _pair;
-    uint8_t _price_exponent;
-    uint8_t _qty_exponent;
+    int8_t _price_exponent;
+    int8_t _qty_exponent;
     const std::string _api_key;
     net::io_context _io_ctx;
     ssl::context _ssl_ctx;

@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 16:10:33                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -47,7 +47,7 @@ class ArbitrageScanner
     std::array<queue_type, 3> _queues;
     //execution stream (Binance client executor) (the pair names are available in the constructor in the correct order  )
     std::array<InternalMessage, 3> _last_messages;
-    std::array<uint8_t, 3> _price_exponents;
-    std::array<uint8_t, 3> _qty_exponents;
+    std::array<int8_t, 3> _price_exponents;
+    std::array<int8_t, 3> _qty_exponents;
     price_type _price_threshold;
 };

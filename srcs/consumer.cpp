@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-08 18:58:46                                                
+last edited: 2025-06-09 20:07:26                                                
 
 ================================================================================*/
 
@@ -24,8 +24,8 @@ int main(int argc, char **argv)
 
   std::array<currency_pair, 3> pairs;
 
-  for (size_t i = 1; i < 4; ++i)
-    pairs[i] = utils::parse_pair(argv[i]);
+  for (size_t i = 0; i < 3; ++i)
+    pairs[i] = utils::parse_pair(argv[i + 1]);
 
   ArbitrageScanner Scanner(pairs);
   Scanner.start();

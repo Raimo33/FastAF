@@ -5,20 +5,14 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(producer
-  srcs/producer.cpp
+add_executable(FastAF
+  srcs/main.cpp
   srcs/MarketDataClient.cpp
-  srcs/utils.cpp
-)
-
-add_executable(consumer
-  srcs/consumer.cpp
   srcs/ArbitrageScanner.cpp
   srcs/utils.cpp
 )
 
-target_include_directories(producer PRIVATE incs)
-target_include_directories(consumer PRIVATE incs)
+target_include_directories(FastAF PRIVATE incs)
 
 set(COMPILER_FLAGS
   -Wall -Wextra -Werror -pedantic
@@ -28,8 +22,7 @@ set(COMPILER_FLAGS
   -fno-plt -fuse-linker-plugin -flto -flto=jobserver
 )
 
-target_compile_options(producer PRIVATE ${COMPILER_FLAGS})
-target_compile_options(consumer PRIVATE ${COMPILER_FLAGS})
+target_compile_options(FastAF PRIVATE ${COMPILER_FLAGS})
 
 # #cleanup
 # CXXFLAGS += -ftree-pta -ftree-copy-prop -ftree-forwprop -ftree-phiprop -ftree-scev-cprop
@@ -55,8 +48,7 @@ target_compile_options(consumer PRIVATE ${COMPILER_FLAGS})
 # CXXFLAGS += -falign-functions -falign-jumps -falign-labels -falign-loops
 # CXXFLAGS += -fcaller-saves -fdefer-pop -fguess-branch-probability
 
-target_link_options(producer PRIVATE -static)
-target_link_options(consumer PRIVATE -static)
+target_link_options(FastAF PRIVATE -static)
 
 set(LIBRARIES
   ssl
@@ -67,5 +59,4 @@ set(LIBRARIES
   jemalloc
 )
 
-target_link_libraries(producer PRIVATE ${LIBRARIES})
-# TODO link consumer libraries
+target_link_libraries(FastAF PRIVATE ${LIBRARIES})

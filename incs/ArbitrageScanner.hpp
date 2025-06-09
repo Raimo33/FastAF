@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-09 20:07:26                                                
+last edited: 2025-06-09 20:09:32                                                
 
 ================================================================================*/
 
@@ -25,7 +25,7 @@ using namespace messages;
 class ArbitrageScanner
 {
   public:
-    static constexpr size_t QUEUE_CAPACITY = 16;
+    static constexpr size_t QUEUE_CAPACITY = 64;
 
     ArbitrageScanner(const std::array<currency_pair, 3> &pairs);
     ~ArbitrageScanner();

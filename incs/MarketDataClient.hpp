@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 20:07:26                                                
+last edited: 2025-06-09 20:09:32                                                
 
 ================================================================================*/
 
@@ -34,7 +34,7 @@ using namespace messages;
 class MarketDataClient
 {
   public:
-    static constexpr size_t QUEUE_CAPACITY = 16;
+    static constexpr size_t QUEUE_CAPACITY = 64;
 
     MarketDataClient(const currency_pair &pair, std::string_view api_key);
     ~MarketDataClient();

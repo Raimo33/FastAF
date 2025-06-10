@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-10 18:45:29                                                
+last edited: 2025-06-10 20:46:08                                                
 
 ================================================================================*/
 
@@ -17,7 +17,7 @@ last edited: 2025-06-10 18:45:29
 
 /*
 
-p1 * e1 + p2 * e2 + p3 * e3 > 1
+p1 * 10^e1 + p2 * 10^e2 + p3 * 10^e3 > 1
 p1 * p1 * p3 > 10^(e1 + e2 + e3)
 log2(p1) + log2(p2) + log2(p3) > log2(10^(e1 + e2 + e3))
 log2(p1) + log2(p2) + log2(p3) > (e1 + e2 + e3) * log2(10)
@@ -28,7 +28,6 @@ COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pair
   _book_snapshots(book_snapshots),
   _info_snapshots(info_snapshots),
   _book_versions{0},
-  _info_versions{0},
   _pairs(pairs) {}
 
 COLD void ArbitrageScanner::start(void)
@@ -52,7 +51,6 @@ COLD void ArbitrageScanner::start(void)
 COLD void ArbitrageScanner::getPairInfo(void)
 {
   int8_t combined_exponent = 0;
-
   std::array<size_t, 3> info_versions{0};
 
   for (uint8_t i = 0; i < 3; ++i)
@@ -67,8 +65,9 @@ COLD void ArbitrageScanner::getPairInfo(void)
     combined_exponent += info.price_exponent;
   }
 
-  static constexpr double LOG2_10 = 3.3219280948873626;
-  _price_threshold = price_type(combined_exponent * LOG2_10);
+  static constexpr double LOG2_10(std::log2(10.0)); 
+  static constexpr double LOG_PERCENTAGE(std::log2(1 + THRESHOLD_PERCENTAGE / 100.0));
+  _threshold = LOG2_10 * combined_exponent + LOG_PERCENTAGE;
 }
 
 COLD void ArbitrageScanner::initBooks(void)
@@ -99,35 +98,25 @@ HOT void ArbitrageScanner::checkArbitrage(const std::array<TopOfBook, 3> &books)
     (tob2.bid_price > 0) & (tob2.ask_price > 0)
   );
 
-  static constexpr auto log2 = [](const int64_t price) -> price_type {
-    return price_type::log2(static_cast<uint64_t>(price));
+  static constexpr auto log2 = [](const int64_t price) -> FixedPoint<8, 24> {
+    return FixedPoint<8, 24>::log2(static_cast<uint64_t>(price));
   };
 
-  //TODO remove
-  for(int i = 0; i < 100; ++i)
+  const FixedPoint<8, 24> path1 = log2(tob0.bid_price) + log2(tob1.ask_price) + log2(tob2.bid_price); // A→B→C→A
+  const FixedPoint<8, 24> path2 = log2(tob0.ask_price) + log2(tob1.bid_price) + log2(tob2.ask_price); // A←B←C←A
+
+  //TODO FIX: something in the calculation is not working.
+  if (path1 > _threshold) [[unlikely]]
   {
-    price_type res = log2(i);
-    std::cout << "log2(" << i << ") = " << res << "\n";
+    std::cout << "Arbitrage opportunity found: A→B→C→A\n";
+    std::cout << "prices: " << tob0.bid_price << " (A) → " << tob1.ask_price << " (B) → " << tob2.bid_price << " (C)\n";
+  }
+  else if (path2 > _threshold) [[unlikely]]
+  {
+    std::cout << "Arbitrage opportunity found: A←B←C←A\n";
+    std::cout << "prices: " << tob0.ask_price << " (A) ← " << tob1.bid_price << " (B) ← " << tob2.ask_price << " (C)\n";
   }
 
-  exit(1);
-
-  const price_type path1 = log2(tob0.bid_price) + log2(tob1.ask_price) + log2(tob2.bid_price); // A→B→C→A
-  const price_type path2 = log2(tob0.ask_price) + log2(tob1.bid_price) + log2(tob2.ask_price); // A←B←C←A
-
-  const bool is_arbitrage = (path1 > _price_threshold) | (path2 > _price_threshold);
-
-  //TODO remove
-  if (is_arbitrage)
-  {
-    std::cout << "Arbitrage opportunity detected:\n"
-              << "Bid/Ask Prices:\n"
-              << "  Pair 0: Bid = " << tob0.bid_price << ", Ask = " << tob0.ask_price << "\n"
-              << "  Pair 1: Bid = " << tob1.bid_price << ", Ask = " << tob1.ask_price << "\n"
-              << "  Pair 2: Bid = " << tob2.bid_price << ", Ask = " << tob2.ask_price << "\n";
-  }
-
-  //TODO check quantity
-
-  //TODO execute arbitrage
+  //check max available quantity for arbitrage
+  //execute arbitrage
 }

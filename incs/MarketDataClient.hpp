@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-10 18:45:29                                                
+last edited: 2025-06-10 20:46:08                                                
 
 ================================================================================*/
 
@@ -39,13 +39,13 @@ class MarketDataClient
 
     void start(void) noexcept;
 
-    static constexpr char HOSTNAME[] = "stream-sbe.binance.com";
-    static constexpr char PORT[] = "9443";
-
   private:
     MarketDataClient(const MarketDataClient &) = delete;
     MarketDataClient(MarketDataClient &&) = delete;
     MarketDataClient &operator=(const MarketDataClient &) = delete;
+
+    static constexpr char HOSTNAME[] = "stream-sbe.binance.com";
+    static constexpr char PORT[] = "9443";
 
     void onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results);
     void onConnect(const beast::error_code &ec, const tcp::resolver::results_type::endpoint_type &endpoint);

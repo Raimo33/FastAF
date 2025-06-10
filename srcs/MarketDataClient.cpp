@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-10 18:45:29                                                
+last edited: 2025-06-10 20:46:08                                                
 
 ================================================================================*/
 
@@ -127,10 +127,16 @@ COLD void MarketDataClient::onFirstRead(const beast::error_code &ec)
     _qty_exponent
   );
 
+  _book_snapshot.emplace(
+    event.bid_price,
+    event.bid_qty,
+    event.ask_price,
+    event.ask_qty
+  );
+
   asyncRead();
 }
 
-#include <iostream>
 HOT void MarketDataClient::onRead(const beast::error_code &ec)
 {
   fast_assert(!ec);

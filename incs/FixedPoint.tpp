@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:34                                                 
-last edited: 2025-06-10 18:45:29                                                
+last edited: 2025-06-10 20:46:08                                                
 
 ================================================================================*/
 
@@ -281,8 +281,8 @@ template <uint8_t IntegerBits, uint8_t FractionalBits>
 constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::log2(const uint64_t value) noexcept
 {
   const uint32_t integer_log2 = 63 - __builtin_clzll(value);
-  
-  constexpr uint32_t TABLE_BITS = std::min(8U, static_cast<uint32_t>(FractionalBits));
+
+  constexpr uint32_t TABLE_BITS = std::min(12U, static_cast<uint32_t>(FractionalBits));
   constexpr uint32_t TABLE_SIZE = 1U << TABLE_BITS;
 
   static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = []() {
@@ -290,19 +290,19 @@ constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, Fracti
     for (uint32_t i = 0; i < TABLE_SIZE; ++i) {
       const double x = static_cast<double>(i) / TABLE_SIZE;
       const double log2_val = std::log2(1.0 + x);
-      table[i] = static_cast<uint32_t>(log2_val * SCALE);
+      table[i] = static_cast<uint32_t>(log2_val * SCALE + 0.5);
     }
     return table;
   }();
 
   const uint32_t mantissa_shift = 63 - integer_log2;
-  const uint64_t mantissa = (value << mantissa_shift) >> (64 - TABLE_BITS);
-  const uint32_t table_index = static_cast<uint32_t>(mantissa);
+  const uint64_t shifted = static_cast<uint64_t>(value) << mantissa_shift;
+  const uint32_t table_index = static_cast<uint32_t>((shifted >> (63 - TABLE_BITS)) & ((1ULL << TABLE_BITS) - 1));
 
   const uint32_t fractional_part = log2_table[table_index];
   const int64_t result = (static_cast<int64_t>(integer_log2) << FractionalBits) + fractional_part;
 
-  return FixedPoint::fromRaw(static_cast<int32_t>(result));
+  return FixedPoint<IntegerBits, FractionalBits>::fromRaw(static_cast<int32_t>(result));
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>

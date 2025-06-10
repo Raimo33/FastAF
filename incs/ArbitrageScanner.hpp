@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-10 20:46:08                                                
+last edited: 2025-06-10 22:44:06                                                
 
 ================================================================================*/
 
@@ -48,5 +48,6 @@ class ArbitrageScanner
     std::array<currency_pair, 3> _pairs; //TODO replace with the array of order-execution streams
     std::array<int8_t, 3> _price_exponents;
     std::array<int8_t, 3> _qty_exponents;
-    FixedPoint<8, 24> _threshold;
+    FixedPoint<8,24> _forward_threshold;
+    FixedPoint<8,24> _backwards_threshold;
 };

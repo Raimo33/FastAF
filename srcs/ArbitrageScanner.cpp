@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-10 20:46:08                                                
+last edited: 2025-06-10 22:44:06                                                
 
 ================================================================================*/
 
@@ -17,10 +17,11 @@ last edited: 2025-06-10 20:46:08
 
 /*
 
-p1 * 10^e1 + p2 * 10^e2 + p3 * 10^e3 > 1
-p1 * p1 * p3 > 10^(e1 + e2 + e3)
-log2(p1) + log2(p2) + log2(p3) > log2(10^(e1 + e2 + e3))
-log2(p1) + log2(p2) + log2(p3) > (e1 + e2 + e3) * log2(10)
+(p1 * 10^e1) * (p2 * 10^e2) * (p3 * 10^e3) > 1 + (THRESHOLD_PERCENTAGE / 100.0)
+log2(p1) + log2(p2) + log2(p3) > log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) - (e1 + e2 + e3) * log2(10)
+
+(1/(p1 * 10^e1)) * (1/(p2 * 10^e2)) * (1/(p3 * 10^e3)) > 1 + (THRESHOLD_PERCENTAGE / 100.0)
+log2(p1) + log2(p2) + log2(p3) < -log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) -(e1 + e2 + e3) * log2(10)
 
 */
 
@@ -65,9 +66,14 @@ COLD void ArbitrageScanner::getPairInfo(void)
     combined_exponent += info.price_exponent;
   }
 
-  static constexpr double LOG2_10(std::log2(10.0)); 
-  static constexpr double LOG_PERCENTAGE(std::log2(1 + THRESHOLD_PERCENTAGE / 100.0));
-  _threshold = LOG2_10 * combined_exponent + LOG_PERCENTAGE;
+  static constexpr double LOG_THRESHOLD = std::log2(1 + (THRESHOLD_PERCENTAGE / 100.0));
+  static constexpr double LOG_10 = std::log2(10.0);
+
+  //log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) - (e1 + e2 + e3) * log2(10)
+  _forward_threshold = LOG_THRESHOLD -combined_exponent * LOG_10;
+
+  //-log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) -(e1 + e2 + e3) * log2(10)
+  _backwards_threshold = -LOG_THRESHOLD -combined_exponent * LOG_10;
 }
 
 COLD void ArbitrageScanner::initBooks(void)
@@ -98,23 +104,23 @@ HOT void ArbitrageScanner::checkArbitrage(const std::array<TopOfBook, 3> &books)
     (tob2.bid_price > 0) & (tob2.ask_price > 0)
   );
 
-  static constexpr auto log2 = [](const int64_t price) -> FixedPoint<8, 24> {
-    return FixedPoint<8, 24>::log2(static_cast<uint64_t>(price));
+  static constexpr auto log2 = [](const int64_t price) -> FixedPoint<8,24> {
+    return FixedPoint<8,24>::log2(static_cast<uint64_t>(price));
   };
 
-  const FixedPoint<8, 24> path1 = log2(tob0.bid_price) + log2(tob1.ask_price) + log2(tob2.bid_price); // A→B→C→A
-  const FixedPoint<8, 24> path2 = log2(tob0.ask_price) + log2(tob1.bid_price) + log2(tob2.ask_price); // A←B←C←A
+  //TODO study permutations
+  const FixedPoint<8,24> forward_path = log2(tob0.bid_price) + log2(tob1.ask_price) + log2(tob2.bid_price);
+  const FixedPoint<8,24> backwards_path = log2(tob0.ask_price) + log2(tob1.bid_price) + log2(tob2.ask_price);
 
-  //TODO FIX: something in the calculation is not working.
-  if (path1 > _threshold) [[unlikely]]
+  if (sum > _forward_threshold)
   {
-    std::cout << "Arbitrage opportunity found: A→B→C→A\n";
-    std::cout << "prices: " << tob0.bid_price << " (A) → " << tob1.ask_price << " (B) → " << tob2.bid_price << " (C)\n";
+    std::cout << "Arbitrage opportunity detected (forward): " << std::endl;
+    std::cout << " sum: " << static_cast<double>(sum) << ", threshold: " << static_cast<double>(_forward_threshold) << std::endl;
   }
-  else if (path2 > _threshold) [[unlikely]]
+  else if (sum < _backwards_threshold)
   {
-    std::cout << "Arbitrage opportunity found: A←B←C←A\n";
-    std::cout << "prices: " << tob0.ask_price << " (A) ← " << tob1.bid_price << " (B) ← " << tob2.ask_price << " (C)\n";
+    std::cout << "Arbitrage opportunity detected (backwards): " << std::endl;
+    std::cout << " sum: " << static_cast<double>(sum) << ", threshold: " << static_cast<double>(_backwards_threshold) << std::endl;
   }
 
   //check max available quantity for arbitrage

@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-03-08 18:21:38                                                 
-last edited: 2025-05-13 14:30:09                                                
+last edited: 2025-06-10 12:42:08                                                
 
 ================================================================================*/
 
@@ -21,3 +21,15 @@ last edited: 2025-05-13 14:30:09
 #define PREFETCH_W(x, priority)   __builtin_prefetch(x, 1, priority)
 #define restrict                  __restrict__
 #define CACHELINE_SIZE           64
+
+//TODO division by zero? null dereference?
+static inline void fast_assert(const bool condition) {
+  __asm__ __volatile__(
+    //TODO cmov
+  );
+
+pass:
+  return;
+fail:
+  __asm__ __volatile__("ud2");
+}

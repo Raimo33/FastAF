@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 11:30:42                                                
+last edited: 2025-06-10 12:42:08                                                
 
 ================================================================================*/
 
@@ -32,6 +32,7 @@ int main(int argc, char **argv)
   MarketDataClient client2(pairs[2], api_key);
   ArbitrageScanner scanner(pairs);
 
+  //TODO should threads share the same io_context?
   std::jthread client_thread0([&client0]() { client0.start(); });
   std::jthread client_thread1([&client1]() { client1.start(); });
   std::jthread client_thread2([&client2]() { client2.start(); });

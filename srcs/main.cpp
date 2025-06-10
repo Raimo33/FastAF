@@ -5,13 +5,15 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-10 12:42:08                                                
+last edited: 2025-06-10 18:45:29                                                
 
 ================================================================================*/
 
 #include "MarketDataClient.hpp"
 #include "ArbitrageScanner.hpp"
 #include "utils.hpp"
+
+//TODO set scheduling policy and priorities
 
 int main(int argc, char **argv)
 {
@@ -22,17 +24,20 @@ int main(int argc, char **argv)
   if (!api_key)
     utils::throw_error("missing environment variable: BINANCE_API_KEY");
 
-  std::array<currency_pair, 3> pairs;
+  std::array<currency_pair, 3> pairs = {
+    utils::parse_pair(argv[1]),
+    utils::parse_pair(argv[2]),
+    utils::parse_pair(argv[3])
+  };
 
-  for (size_t i = 0; i < 3; ++i)
-    pairs[i] = utils::parse_pair(argv[i + 1]);
+  std::array<SharedSnapshot<TopOfBook>, 3> book_snapshots;
+  std::array<SharedSnapshot<PairInfo>, 3> info_snapshots;
 
-  MarketDataClient client0(pairs[0], api_key);
-  MarketDataClient client1(pairs[1], api_key);
-  MarketDataClient client2(pairs[2], api_key);
-  ArbitrageScanner scanner(pairs);
+  MarketDataClient client0(pairs[0], book_snapshots[0], info_snapshots[0], api_key);
+  MarketDataClient client1(pairs[1], book_snapshots[1], info_snapshots[1], api_key);
+  MarketDataClient client2(pairs[2], book_snapshots[2], info_snapshots[2], api_key);
+  ArbitrageScanner scanner(pairs, book_snapshots, info_snapshots);
 
-  //TODO should threads share the same io_context?
   std::jthread client_thread0([&client0]() { client0.start(); });
   std::jthread client_thread1([&client1]() { client1.start(); });
   std::jthread client_thread2([&client2]() { client2.start(); });

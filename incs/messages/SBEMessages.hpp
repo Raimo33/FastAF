@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 11:30:42                                                 
-last edited: 2025-06-09 20:07:26                                                
+last edited: 2025-06-10 18:45:29                                                
 
 ================================================================================*/
 
@@ -18,6 +18,9 @@ using namespace boost::endian;
 #pragma pack(push, 1)
 
 namespace messages
+{
+
+namespace sbe
 {
 
 struct SBEMessage
@@ -44,6 +47,8 @@ struct SBEMessage
     //variable length symbol string
   } best_bid_ask_stream_event;
 };
+
+} // namespace sbe
 
 } // namespace messages
 

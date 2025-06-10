@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:34                                                 
-last edited: 2025-06-09 20:07:26                                                
+last edited: 2025-06-10 18:45:29                                                
 
 ================================================================================*/
 
@@ -284,7 +284,7 @@ constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, Fracti
   
   constexpr uint32_t TABLE_BITS = std::min(8U, static_cast<uint32_t>(FractionalBits));
   constexpr uint32_t TABLE_SIZE = 1U << TABLE_BITS;
-  
+
   static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = []() {
     std::array<uint32_t, TABLE_SIZE> table{};
     for (uint32_t i = 0; i < TABLE_SIZE; ++i) {

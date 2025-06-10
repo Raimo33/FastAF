@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 20:07:26                                                
+last edited: 2025-06-10 18:45:29                                                
 
 ================================================================================*/
 
@@ -14,15 +14,19 @@ last edited: 2025-06-09 20:07:26
 #include "messages/InternalMessages.hpp"
 #include "macros.hpp"
 
+using namespace messages::sbe;
+
 //logging with individual SPSC queues (not IPC, using threads) (each message is a span object)
 
-COLD MarketDataClient::MarketDataClient(const currency_pair &pair, std::string_view api_key) :
+COLD MarketDataClient::MarketDataClient(const currency_pair &pair, SharedSnapshot<TopOfBook> &book_snapshot, SharedSnapshot<PairInfo> &info_snapshot, std::string_view api_key) noexcept :
   _pair(pair),
   _api_key(api_key),
   _ssl_ctx(ssl::context::tlsv13_client),
   _resolver(_io_ctx),
   _ws_stream(_io_ctx, _ssl_ctx),
   _read_buffer(1024),
+  _book_snapshot(book_snapshot),
+  _info_snapshot(info_snapshot)
 {
   _ssl_ctx.set_default_verify_paths();
   _ssl_ctx.set_verify_mode(ssl::verify_peer);
@@ -45,7 +49,7 @@ COLD void MarketDataClient::start(void) noexcept
 
 COLD void MarketDataClient::onResolve(const beast::error_code &ec, const tcp::resolver::results_type &results)
 {
-  assert(!ec);
+  fast_assert(!ec);
 
   auto &stream = beast::get_lowest_layer(_ws_stream);
 
@@ -57,7 +61,7 @@ COLD void MarketDataClient::onResolve(const beast::error_code &ec, const tcp::re
 
 COLD void MarketDataClient::onConnect(const beast::error_code &ec, UNUSED const tcp::resolver::results_type::endpoint_type &endpoint)
 {
-  assert(!ec);
+  fast_assert(!ec);
 
   auto &stream = _ws_stream.next_layer();
   auto &socket = beast::get_lowest_layer(stream).socket();
@@ -72,7 +76,7 @@ COLD void MarketDataClient::onConnect(const beast::error_code &ec, UNUSED const 
 
 COLD void MarketDataClient::onSSLHandshake(const beast::error_code &ec)
 {
-  assert(!ec);
+  fast_assert(!ec);
 
   _ws_stream.set_option(websocket::stream_base::decorator(
     [this](websocket::request_type &req) {
@@ -89,7 +93,7 @@ COLD void MarketDataClient::onSSLHandshake(const beast::error_code &ec)
 
 COLD void MarketDataClient::onWSHandshake(const beast::error_code &ec)
 {
-  assert(!ec);
+  fast_assert(!ec);
 
   _ws_stream.control_callback(
   [this](websocket::frame_type kind, std::string &&payload) {
@@ -106,13 +110,13 @@ COLD void MarketDataClient::onWSHandshake(const beast::error_code &ec)
 
 COLD void MarketDataClient::onFirstRead(const beast::error_code &ec)
 {
-  assert(!ec);
-  assert(_ws_stream.got_binary());
+  fast_assert(!ec);
+  fast_assert(_ws_stream.got_binary());
 
   std::span<const std::byte> data = getSpan(_read_buffer);
 
   const auto &message = *reinterpret_cast<const SBEMessage *>(data.data());
-  assert(message.header.template_id == 10001);
+  fast_assert(message.header.template_id == 10001);
   const auto &event = message.best_bid_ask_stream_event;
 
   _price_exponent = event.price_exponent;
@@ -120,16 +124,17 @@ COLD void MarketDataClient::onFirstRead(const beast::error_code &ec)
 
   _info_snapshot.emplace(
     _price_exponent,
-    _qty_exponent,
+    _qty_exponent
   );
 
   asyncRead();
 }
 
+#include <iostream>
 HOT void MarketDataClient::onRead(const beast::error_code &ec)
 {
-  assert(!ec);
-  assert(_ws_stream.got_binary());
+  fast_assert(!ec);
+  fast_assert(_ws_stream.got_binary());
 
   std::span<const std::byte> data = getSpan(_read_buffer);
 
@@ -137,17 +142,17 @@ HOT void MarketDataClient::onRead(const beast::error_code &ec)
   const auto &header = message.header;
   const auto &event = message.best_bid_ask_stream_event;
 
-  assert(
+  fast_assert(
     (header.template_id == 10001) &
     (event.price_exponent == _price_exponent) &
     (event.qty_exponent == _qty_exponent)
   );
 
   _book_snapshot.emplace(
-      event.bid_price,
-      event.bid_qty,
-      event.ask_price,
-      event.ask_qty,
+    event.bid_price,
+    event.bid_qty,
+    event.ask_price,
+    event.ask_qty
   );
 
   _read_buffer.consume(data.size());
@@ -181,7 +186,7 @@ HOT void MarketDataClient::onPing(std::string &&payload)
 
 HOT void MarketDataClient::onPong(const beast::error_code &ec)
 {
-  assert(!ec);
+  fast_assert(!ec);
 }
 
 COLD void MarketDataClient::onClose(void)

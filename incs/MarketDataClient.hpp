@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-09 20:09:32                                                
+last edited: 2025-06-10 18:45:29                                                
 
 ================================================================================*/
 
@@ -34,7 +34,7 @@ using namespace messages::internal;
 class MarketDataClient
 {
   public:
-    MarketDataClient(const currency_pair &pair, std::string_view api_key);
+    MarketDataClient(const currency_pair &pair, SharedSnapshot<TopOfBook> &book_snapshot, SharedSnapshot<PairInfo> &info_snapshot, std::string_view api_key) noexcept;
     ~MarketDataClient();
 
     void start(void) noexcept;
@@ -71,6 +71,6 @@ class MarketDataClient
     tcp::resolver _resolver;
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> _ws_stream;
     beast::flat_buffer _read_buffer;
-    SharedSnapshot<TopOfBook> _book_snapshot;
-    SharedSnapshot<PairInfo> _info_snapshot;
+    SharedSnapshot<TopOfBook> &_book_snapshot;
+    SharedSnapshot<PairInfo> &_info_snapshot;
 };

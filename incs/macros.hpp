@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-03-08 18:21:38                                                 
-last edited: 2025-06-10 12:42:08                                                
+last edited: 2025-06-10 18:45:29                                                
 
 ================================================================================*/
 
@@ -22,14 +22,35 @@ last edited: 2025-06-10 12:42:08
 #define restrict                  __restrict__
 #define CACHELINE_SIZE           64
 
-//TODO division by zero? null dereference?
-static inline void fast_assert(const bool condition) {
+#include <utility>
+
+HOT static inline void fast_assert(const bool condition)
+{
   __asm__ __volatile__(
-    //TODO cmov
+    "test %[cond], %[cond]\n\t"
+
+    "mov $1f, %%rax\n\t"
+    "mov $2f, %%rdx\n\t"
+
+    "cmovz %%rdx, %%rax\n\t" 
+    "jmp *%%rax\n\t"
+
+    "1:\n\t"
+    "ret\n\t"
+    "2:\n\t"
+    "ud2\n\t"
+    :
+    : [cond] "r"(condition)
+    : "rax", "rdx"
   );
 
-pass:
-  return;
-fail:
-  __asm__ __volatile__("ud2");
+  std::unreachable();
 }
+
+/* unsafe approach
+
+static inline void fast_assert(const bool condition) {
+  *(volatile void *)condition;
+}
+
+*/

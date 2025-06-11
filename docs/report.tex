@@ -97,7 +97,48 @@ In most computer systems, where registers are limited to 64 bits, the product of
 \begin{equation}
     \log_b(m_1) + \log_b(m_2) + \log_b(m_3) > -(e_1 + e_2 + e_3) \cdot \log_b(10)
 \end{equation}
-For the sole reason of addressing the overflow issue state above, the choice of the base \(b\) can be arbitrary. But in reality things are much more complicated. 
+
+\subsection{Inverse Direction}
+As of now, we have only considered the \textbf{forward direction} of the triangular arbitrage, i.e. the forward cycle path. But since the rates are bidirectional, we can also exploit price inefficiencies in the \textbf{reverse direction}. Assuming we don't have the rates for the reverse direction, we can compute them as the inverse of the forward rates, and the formula becomes:
+\setcounter{equation}{0}
+\begin{equation}
+    \frac{1}{R_{1}} \cdot \frac{1}{R_{2}} \cdot \frac{1}{R_{3}} > 1
+\end{equation}
+\begin{equation}
+    \frac{1}{m_1 \cdot 10^{e_1}} \cdot \frac{1}{m_2 \cdot 10^{e_2}} \cdot \frac{1}{m_3 \cdot 10^{e_3}} > 1
+\end{equation}
+\begin{equation}
+    \frac{1}{m_1 \cdot m_2 \cdot m_3 \cdot 10^{e_1 + e_2 + e_3}} > 1
+\end{equation}
+\begin{equation}
+    m_1 \cdot m_2 \cdot m_3 \cdot 10^{e_1 + e_2 + e_3} < 1
+\end{equation}
+\begin{equation}
+    m_1 \cdot m_2 \cdot m_3 < \frac{1}{10^{e_1 + e_2 + e_3}}
+\end{equation}
+\begin{equation}
+    m_1 \cdot m_2 \cdot m_3 < 10^{-(e_1 + e_2 + e_3)}
+\end{equation}
+\begin{equation}
+    \log_b(m_1 \cdot m_2 \cdot m_3) < \log_b(10^{-(e_1 + e_2 + e_3)})
+\end{equation}
+\begin{equation}
+    \log_b(m_1) + \log_b(m_2) + \log_b(m_3) < -(e_1 + e_2 + e_3) \cdot \log_b(10)
+\end{equation}
+
+\section{Algorithm}
+Once the formula is derived, the algorithm is just a matter of applying the two inequalities. From a first analysis, it seems that the only difference between the forward and reverse inequalities is their direction. However, we have to account for the \textbf{spread}, which is the difference between the bid and ask prices. This means that we have to consider the \textbf{ask} price for the forward direction and the \textbf{bid} price for the reverse direction. Therefore, we still have to compute both inequalities separately.
+
+\subsection{Precomputation}
+Assuming exponents change very rarely, we can use an optimistic and precompute the entire right side of the inequality, storing it in a constant variable, and revert (or possibly shutdown) if the exponents change.
+
+\subsection{Fixed-Point Numbers}
+On the left side of the inequality, we have another problem: the logarithms produce floating-point numbers.
+
+% //TODO maybe i dont even need fixed points. if the log function can return mantissa and exponent separately.
+
+Up to this point, and for the sole purpose of simpifying the formula, we have considered the base \(b\) of the logarithm to be arbitrary.
+But in reality things are more complicated:
 \begin{itemize}
     \item A larger base $b$ will result in a smaller logarithm, which can lead to a loss of precision.
     \item $\log_{2}$ is often faster to compute on most hardware, thanks to bit-shifting operations.
@@ -106,10 +147,9 @@ For the sole reason of addressing the overflow issue state above, the choice of 
 
 \section{Bellman-Ford Algorithm}
 
-\section{Fixed-Point Representation}
-
 \section{Relative Error}
 
 \section{Optimization}
+% parallelization (either of the bellman-ford or of the 2 formulas (6 logs in parallel))
 
 \end{document}

@@ -50,8 +50,8 @@ To visualize triangular arbitrage, we can represent it as a \textbf{directed gra
 \coordinate (B) at (3,0);
 \coordinate (C) at ($(A)!0.5!(B) + (0,2.6)$);
 
-\node[main, fill=DollarColor] (usd) at (A) {usd};
-\node[main, fill=EuroColor] (eur) at (B) {eur};
+\node[main, fill=DollarColor]  (usd) at (A) {usd};
+\node[main, fill=EuroColor]    (eur) at (B) {eur};
 \node[main, fill=BitcoinColor] (btc) at (C) {btc};
 
 \draw[->] (usd) to[bend left=15] node[above] {} (eur);
@@ -68,13 +68,13 @@ To visualize triangular arbitrage, we can represent it as a \textbf{directed gra
 \section{Arbitrage Formula}
 
 \subsection{Base Formula}
-The formula to detect a profitable triangular arbitrage path, given three exchange rates \(R\), is the following inequality:
+The formula to detect a profitable triangular arbitrage path, given three exchange rates $R$, is the following inequality:
 \begin{equation}
     R_{1} \cdot R_{2} \cdot R_{3} > 1
 \end{equation}
 
 \subsection{Floating-Point Representation}
-In practice, each price is a floating-point number, and often times, if the \textit{data collection} layer is serious about efficiency, they are provided as \textbf{mantissa} (\(m\)) and \textbf{exponent} (\(e\)) separately. So our inequality becomes:
+In practice, each price is a floating-point number, and often times, if the \textit{data collection} layer is serious about efficiency, they are provided as \textbf{mantissa} ($m$) and \textbf{exponent} ($e$) separately. So our inequality becomes:
 
 \begin{equation}
     \left( m_1 \cdot 10^{e_1} \right) \cdot \left( m_2 \cdot 10^{e_2} \right) \cdot \left( m_3 \cdot 10^{e_3} \right) > 1
@@ -127,23 +127,56 @@ As of now, we have only considered the \textbf{forward direction} of the triangu
 \end{equation}
 
 \section{Algorithm}
-Once the formula is derived, the algorithm is just a matter of applying the two inequalities. From a first analysis, it seems that the only difference between the forward and reverse inequalities is their direction. However, we have to account for the \textbf{spread}, which is the difference between the bid and ask prices. This means that we have to consider the \textbf{ask} price for the forward direction and the \textbf{bid} price for the reverse direction. Therefore, we still have to compute both inequalities separately.
 
-\subsection{Precomputation}
-Assuming exponents change very rarely, we can use an optimistic and precompute the entire right side of the inequality, storing it in a constant variable, and revert (or possibly shutdown) if the exponents change.
+\subsection{The Spread Problem}
+Once the formula is derived, the algorithm is just a matter of applying the two inequalities. From a first analysis, it seems that the only difference between the forward and reverse inequalities is their direction. However, we have to account for the \textbf{spread}, which is the difference between the bid and ask prices. This means that we have to consider the \textbf{ask} price for the forward direction and the \textbf{bid} price for the reverse direction.
 
-\subsection{Fixed-Point Numbers}
-On the left side of the inequality, we have another problem: the logarithms produce floating-point numbers.
-
-% //TODO maybe i dont even need fixed points. if the log function can return mantissa and exponent separately.
-
-Up to this point, and for the sole purpose of simpifying the formula, we have considered the base \(b\) of the logarithm to be arbitrary.
+\subsection{The choice of the base}
+Up to this point, we have considered the base $b$ of the logarithm to be arbitrary.
 But in reality things are more complicated:
 \begin{itemize}
-    \item A larger base $b$ will result in a smaller logarithm, which can lead to a loss of precision.
-    \item $\log_{2}$ is often faster to compute on most hardware, thanks to bit-shifting operations.
+    \item A larger base $b$ will result in a smaller logarithm, which can lead to an increase of precision\textsuperscript{\cite{floating-point-precision}}.
+    \item $\log_{2}$ is often faster to compute on most hardware, thanks to bitwise operations\textsuperscript{\cite{log2-advantage}}.
     \item $\log_{10}$ allows for a simplification of the formula: $\log_{10}(10) = 1$.
 \end{itemize}
+
+//TODO argument the choice of the base2
+
+\subsection{Precomputation}
+Assuming exponents change very rarely, we can use an optimistic approach and \textbf{precompute} the entire right side of the inequality, storing it in a constant variable, raising an exception or even updating the precomputed constant only when the exponents change.
+
+\subsection{The Representation of real numbers}
+The logarithms produce real numbers. To address this in an effient manner, we must avoid floating-point numbers once again. This leaves us with two options:
+\begin{enumerate}
+  \item \texttt{log2(integer x) $\rightarrow$ FixedPoint}
+  \item \texttt{log2(integer x) $\rightarrow$ [Mantissa, Exponent]}
+\end{enumerate}
+While both are great alternatives, the latter is preferable because we can choose the base of the returned floating-point representation. Furthermore, if we choose the same base as the logarithm, there is a lot of room for optimization.
+
+\subsection{The Actual Computation}
+Combining all the previous steps, we can derive the final steps to compute the left side of the inequality:
+\setcounter{equation}{0}
+\begin{equation}
+    \log_2(m_1) + \log_2(m_2) + \log_2(m_3)
+\end{equation}
+\begin{equation}
+    m'_1 \cdot 2^{e'_1} + m'_2 \cdot 2^{e'_2} + m'_3 \cdot 2^{e'_3}
+\end{equation}
+computing the maximum exponent $e'_{\max}$ for normalization:
+\begin{equation}
+    (m'_1 \cdot 2^{e'_1 - e'_{\max}}) \cdot 2^{e'_{\max}} + (m'_2 \cdot 2^{e'_2 - e'_{\max}}) \cdot 2^{e'_{\max}} + (m'_3 \cdot 2^{e'_3 - e'_{\max}}) \cdot 2^{e'_{\max}}
+\end{equation} 
+\begin{equation}
+    2^{e'_{\max}} \cdot (m'_1 \cdot 2^{e'_1 - e'_{\max}} + m'_2 \cdot 2^{e'_2 - e'_{\max}} + m'_3 \cdot 2^{e'_3 - e'_{\max}})
+\end{equation}
+rewriting the powers of two as bitshifts:
+\begin{equation}
+    (m'_1 \ll (e'_1 - e'_{\max}) + m'_2 \ll (e'_2 - e'_{\max}) + m'_3 \ll (e'_3 - e'_{\max})) \ll e'_{\max}
+\end{equation}
+
+
+
+% if i have log2(x) + log2(y) + log2(z) i can have each log2() function return a combination of mantissa + exponent. so that each log2() is mantissa * 2^exponent?
 
 \section{Bellman-Ford Algorithm}
 
@@ -151,5 +184,12 @@ But in reality things are more complicated:
 
 \section{Optimization}
 % parallelization (either of the bellman-ford or of the 2 formulas (6 logs in parallel))
+
+\begin{thebibliography}{9}
+
+\bibitem{floating-point-precision}
+\bibitem{log2-advantage}
+
+\end{thebibliography}
 
 \end{document}

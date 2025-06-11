@@ -4,3 +4,10 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 FastAF
+*.aux
+*.log
+*.out
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz

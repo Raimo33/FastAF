@@ -1,0 +1,115 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath, amssymb, mathtools}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric}
+
+\usepackage{siunitx}
+\usepackage{xcolor}
+\definecolor{DollarColor}{RGB}{107, 128, 104}
+\definecolor{EuroColor}{RGB}{93, 126, 167}
+\definecolor{BitcoinColor}{RGB}{247, 147, 26}
+\usepackage{booktabs, array, tabularx}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Fast Arbitrage Detection}
+\author{Claudio Raimondi}
+\date{\today}
+\maketitle
+
+\begin{abstract}
+Triangular arbitrage offers opportunities to exploit price inefficiencies between three currency pairs. While several algorithms exist for arbitrage detection, their computational efficiency and accuracy can vary. In this report, I present a method that combines established graph-based algorithms with \textbf{fixed-point} representation techniques to detect triangular arbitrage efficiently and accurately. The approach leverages the \textbf{Bellman-Ford algorithm} for cycle detection, enhanced by numerical optimizations to minimize floating-point errors. Experimental results demonstrate that this method improves detection speed and reliability, making it suitable for real-time financial applications.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+The process to exploit triangular arbitrage opportunities involves 3 generic steps, each crucial for ensuring the success of the strategy:
+\begin{enumerate}
+    \item \textbf{Data Collection:} Gather real-time exchange rates for the currency pairs involved.
+    \item \textbf{Data Manipulation:} Use the collected data to detect profitable trades.
+    \item \textbf{Execution:} Execute trades to lock in profits.
+\end{enumerate}
+For all three steps, the \textbf{speed} and \textbf{accuracy} of the algorithm are paramount. All the efforts become vain if somebody else collets, manipulates, and executes the arbitrage opportunity before you do.
+On this report, I will focus on the \textbf{second step}---\textit{data manipulation}---, which is the most short-lived. The other two steps rely on external factors, such as networks and exchange APIs.
+
+\section{Representation}
+To visualize triangular arbitrage, we can represent it as a \textbf{directed graph} (more precisely a clique), where each node represents a currency and each edge represents an exchange rate.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth, thick, main/.style={draw, circle, minimum size=1.2cm, font=\sffamily\large\bfseries}]
+
+\coordinate (A) at (0,0);
+\coordinate (B) at (3,0);
+\coordinate (C) at ($(A)!0.5!(B) + (0,2.6)$);
+
+\node[main, fill=DollarColor] (usd) at (A) {usd};
+\node[main, fill=EuroColor] (eur) at (B) {eur};
+\node[main, fill=BitcoinColor] (btc) at (C) {btc};
+
+\draw[->] (usd) to[bend left=15] node[above] {} (eur);
+\draw[->] (eur) to[bend left=15] node[above] {} (btc);
+\draw[->] (btc) to[bend left=15] node[above] {} (usd);
+
+\draw[->] (eur) to[bend left=15] node[above] {} (usd);
+\draw[->] (btc) to[bend left=15] node[above] {} (eur);
+\draw[->] (usd) to[bend left=15] node[above] {} (btc);
+
+\end{tikzpicture}
+\end{center}
+
+\section{Arbitrage Formula}
+
+\subsection{Base Formula}
+The formula to detect a profitable triangular arbitrage path, given three exchange rates \(R\), is the following inequality:
+\begin{equation}
+    R_{1} \cdot R_{2} \cdot R_{3} > 1
+\end{equation}
+
+\subsection{Floating-Point Representation}
+In practice, each price is a floating-point number, and often times, if the \textit{data collection} layer is serious about efficiency, they are provided as \textbf{mantissa} (\(m\)) and \textbf{exponent} (\(e\)) separately. So our inequality becomes:
+
+\begin{equation}
+    \left( m_1 \cdot 10^{e_1} \right) \cdot \left( m_2 \cdot 10^{e_2} \right) \cdot \left( m_3 \cdot 10^{e_3} \right) > 1
+\end{equation}
+\begin{equation}
+    m_1 \cdot m_2 \cdot m_3 \cdot 10^{e_1 + e_2 + e_3} > 1
+\end{equation}
+\begin{equation}
+    m_1 \cdot m_2 \cdot m_3 > \frac{1}{10^{e_1 + e_2 + e_3}}
+\end{equation}
+\begin{equation}
+    m_1 \cdot m_2 \cdot m_3 > 10^{-(e_1 + e_2 + e_3)}
+\end{equation}
+
+\subsection{Logarithmic Form}
+In most computer systems, where registers are limited to 64 bits, the product of three mantissas can easily overflow. To address this, we can use logarithmic properties to transform the \textbf{product} into an \textbf{addition} of much smaller numbers and the \textbf{power} into a \textbf{product}:
+\begin{equation}
+    \log_b(m_1 \cdot m_2 \cdot m_3) > \log_b(10^{-(e_1 + e_2 + e_3)})
+\end{equation}
+\begin{equation}
+    \log_b(m_1) + \log_b(m_2) + \log_b(m_3) > -(e_1 + e_2 + e_3) \cdot \log_b(10)
+\end{equation}
+For the sole reason of addressing the overflow issue state above, the choice of the base \(b\) can be arbitrary. But in reality things are much more complicated. 
+\begin{itemize}
+    \item A larger base $b$ will result in a smaller logarithm, which can lead to a loss of precision.
+    \item $\log_{2}$ is often faster to compute on most hardware, thanks to bit-shifting operations.
+    \item $\log_{10}$ allows for a simplification of the formula: $\log_{10}(10) = 1$.
+\end{itemize}
+
+\section{Bellman-Ford Algorithm}
+
+\section{Fixed-Point Representation}
+
+\section{Relative Error}
+
+\section{Optimization}
+
+\end{document}

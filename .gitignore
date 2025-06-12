@@ -11,3 +11,4 @@ FastAF
 *.fdb_latexmk
 *.fls
 *.synctex.gz
+docs/_minted-report

@@ -24,10 +24,8 @@
 \date{\today}
 \maketitle
 
-//TODO properly refer to the reader as "we" or "I". not both
-
 \begin{abstract}
-Triangular arbitrage offers opportunities to exploit price inefficiencies between three currency pairs. While several algorithms exist for triangular arbitrage detection, their computational efficiency and accuracy can vary. In this report, I present a straight forward method that combines logarithmic properties with numerical representation techniques to efficiently detect arbitrage opportunities.
+Triangular arbitrage offers opportunities to exploit price inefficiencies between three currency pairs. While several algorithms exist for triangular arbitrage detection, their computational efficiency and accuracy can vary. In this report, I present a straight forward method that combines logarithmic properties with numerical representation techniques and advanced parallelization strategies to accurately and efficiently detect arbitrage opportunities.
 \end{abstract}
 
 \tableofcontents
@@ -75,8 +73,8 @@ The formula to detect a profitable triangular arbitrage path, given three exchan
     R_{1} \cdot R_{2} \cdot R_{3} > 1
 \end{equation}
 
-\subsection{Floating-Point Representation}
-In practice, each price is a floating-point number, and often times, if the \textit{data collection} layer is serious about efficiency, they are provided as \textbf{mantissa} ($m$) and \textbf{exponent} ($e$) separately. So our inequality becomes:
+\subsection{Price Format}
+If the \textit{data collection} layer is serious about efficiency and precision, the prices are provided in \textbf{fixed point} representation as a combination of \textbf{mantissa} and \textbf{exponent} such that $R = m \cdot 10^{e}$. So the formula becomes:
 
 \begin{equation}
     \left( m_1 \cdot 10^{e_1} \right) \cdot \left( m_2 \cdot 10^{e_2} \right) \cdot \left( m_3 \cdot 10^{e_3} \right) > 1
@@ -136,65 +134,97 @@ Once the formula is derived, the algorithm is just a matter of applying the two 
 \subsection{The choice of the base}
 Up to this point, we have considered the base $b$ of the logarithm to be arbitrary. But in practice, we have to choose the one that best fits our needs.
 \begin{itemize}
-    \item $\log_{2}$ matches the binary representation of floating-point numbers.
     \item $\log_{10}$ allows for a simplification of the formula: $\log_{10}(10) = 1$.
+    \item $\log_{2}$ can be computed with fast bit-shifts, and it is the natural choice for binary systems\textsuperscript{\cite{bithacks}}.
 \end{itemize}
-In this implementation, we choose $\log_{2}$. This decision is motivated by \textbf{efficiency} and \textbf{precision}. In fact, since floating-point numbers are naturally represented in base 2, we can compute the logarithm with fast bit-shifts and with zero precision loss. Additionally, the simplification of the formula that comes with $\log_{10}$ is not necessary, as we can precompute it.
+In this implementation, I chose the latter. This decision is motivated by both \textbf{efficiency} and \textbf{precision} gains. In fact the logarithm base 2 has some unique properties:
+\begin{itemize}
+    \item the integer part corresponds to 63 minus the number of leading zeros in the binary representation of the value.
+    \item since floating point numbers are naturally represented in base 2, there is virtually no loss of precision.
+\end{itemize}
+Furthermore, the small advantage of using base 10 becomes irrelevant since we can precompute the value of $\log2(10)$ anyways.
 
 \subsection{Precomputation}
 Assuming exponents change very rarely, we can use an optimistic approach and \textbf{precompute} the entire right side of the inequality, storing it in a constant variable, raising an exception or even updating the precomputed constant only when the exponents change.
 
-\subsection{The Representation of real numbers}
-The logarithms produce real numbers. To address this in an effient manner, we must avoid floating-point numbers once again. This leaves us with two options:
-\begin{enumerate}
-  \item \texttt{log2(integer x) $\rightarrow$ FixedPoint}
-  \item \texttt{log2(integer x) $\rightarrow$ [Mantissa, Exponent]}
-\end{enumerate}
-While both are great alternatives, the latter is preferable because we can choose the base of the returned floating-point representation. Furthermore, if we choose the same base as the logarithm, there is a lot of room for optimization.
-
-\subsection{The Actual Computation}
-Combining all the previous steps, we can derive the final steps to compute the left side of the inequality:
-\setcounter{equation}{0}
-\begin{equation}
-    \log_2(m_1) + \log_2(m_2) + \log_2(m_3)
-\end{equation}
-\begin{equation}
-    m'_1 \cdot 2^{e'_1} + m'_2 \cdot 2^{e'_2} + m'_3 \cdot 2^{e'_3}
-\end{equation}
-computing the maximum exponent $e'_{\max}$ for normalization:
-\begin{equation}
-    (m'_1 \cdot 2^{e'_1 - e'_{\max}}) \cdot 2^{e'_{\max}} + (m'_2 \cdot 2^{e'_2 - e'_{\max}}) \cdot 2^{e'_{\max}} + (m'_3 \cdot 2^{e'_3 - e'_{\max}}) \cdot 2^{e'_{\max}}
-\end{equation} 
-\begin{equation}
-    2^{e'_{\max}} \cdot (m'_1 \cdot 2^{e'_1 - e'_{\max}} + m'_2 \cdot 2^{e'_2 - e'_{\max}} + m'_3 \cdot 2^{e'_3 - e'_{\max}})
-\end{equation}
-rewriting the powers of two as bitshifts:
-\begin{equation}
-    (m'_1 \ll (e'_1 - e'_{\max}) + m'_2 \ll (e'_2 - e'_{\max}) + m'_3 \ll (e'_3 - e'_{\max})) \ll e'_{\max}
-\end{equation}
-
+\subsection{Fixed Point Representation}
+Since the logarithm produces a real number, I will use a \textbf{fixed point} representation to store the result. This allows for much faster additions and comparisons compared to floating point numbers. For reference, a float add takes about 4-5 cycles on modern CPUs\textsuperscript{\cite{agner2024}}, while a fixed point addition takes only 1 cycle. Specifically, since the maximum possible value of the logarithm is $log_2(2^{63}) = 63$, we need $\lceil \log_2(64) \rceil = 6$ bits to store integers up to 63. The fractional part can be chosen based on the desired precision. At this point we have three options for the fixed point format:
+\begin{itemize}
+    \item Q6.10 as 16 bits $\rightarrow 2^{-10} = 0.000977$ step size.
+    \item Q6.26 as 32 bits $\rightarrow 2^{-26} = 0.000000015$ step size.
+    \item Q6.58 as 64 bits $\rightarrow 2^{-58} = 0.0000000000000000035$ step size.
+\end{itemize}
+Out of the three, the second option offers the best balance between precision and size. For instance, a maximum error of $\frac{\text{step\_size}}{2} = \frac{0.000000015}{2} = 0.0000000075$ in the logarithmic value corresponds to a relative error of $2^{0.0000000075} - 1 \approx 5 \cdot 10^{-9} = 0.0000005\%$ in the original value, which is more than enough precision for our needs.
 
 \subsection{Log2}
-//TODO actual log2 implementation
+The actual implementation of the \texttt{log2} function relies on the \textbf{clz} (count leading zeros) intrinsic for the integer part, and a \textbf{lookup table} for the fractional part. The table is generated by sampling the logarithm function at regular intervals in the range $[0, 1]$.
+The \textbf{table size} directly influences the precision of the fractional part. Specifically, it determines the number of samples taken in the $[0, 1]$ range along the horizontal axis of the logarithm function.
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{TABLE\_SIZE} & \textbf{Memory Usage} & \textbf{Horizontal Step Size} & \textbf{Vertical Step Size (approx.)} \\
+\hline
+512     & 2 KB    & $0.00195$   & $\sim0.00013$ \\
+1024    & 4 KB    & $0.00098$   & $\sim0.000068$ \\
+4096    & 16 KB   & $0.00024$   & $\sim0.000017$ \\
+8192    & 32 KB   & $0.00012$   & $\sim0.0000085$ \\
+\hline
+\end{tabular}
+\caption{Trade-offs between memory usage and precision for various table sizes}
+\end{table}
+Considering that modern day CPUs have L1 cache sizes of 32 KB or more, a lookup table with 1024 entries is a good compromise between precision and memory usage. Unfortunately, this brings down the step size from $0.000000015$ to $0.000068$, or a maximum error of $0.000068 \div 2 = 0.000034$, which corresponds to a relative error of $2^{0.000034} - 1 \approx 2.4 \cdot 10^{-5} = 0.0024\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error.
 
-\begin{minted}{c}
-void normalize(uint64_t value, uint64_t &mantissa, uint8_t &exponent)
+\newpage
+\begin{minted}{cpp}
+template <uint8_t IntegerBits, uint8_t FractionalBits>
+constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::log2(const uint64_t value) noexcept
 {
-  uint8_t leading_zeros = __builtin_clzll(value);
-  exponent = 63 - leading_zeros;
-  mantissa = value << leading_zeros;
+  const uint32_t integer_part = 63 - __builtin_clzll(value);
+
+  constexpr uint32_t TABLE_BITS = std::min(10U, FractionalBits); //2^10 = 1024 entries
+  constexpr uint32_t TABLE_SIZE = 1U << TABLE_BITS;
+  constexpr int32_t  SCALE = 1U << FractionalBits;
+  constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
+  constexpr uint32_t MASK = TABLE_SIZE - 1;
+
+  static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = []()
+  {
+    std::array<uint32_t, TABLE_SIZE> table{};
+
+    for (uint32_t i = 0; i < TABLE_SIZE; ++i)
+    {
+      const double x = static_cast<double>(i) / TABLE_SIZE;
+      const double log2_val = std::log2(1.0 + x);
+      table[i] = (log2_val * SCALE + 0.5);
+    }
+
+    return table;
+  }();
+
+  const uint32_t mantissa_shift = 63 - integer_part;
+  const uint64_t shifted = value << mantissa_shift;
+  const uint32_t table_index = (shifted >> SHIFT_AMOUNT) & MASK;
+
+  const uint32_t fractional_part = log2_table[table_index];
+  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FractionalBits) + static_cast<int32_t>(fractional_part);
+
+  return FixedPoint<IntegerBits, FractionalBits>::fromRaw(raw_value);
 }
 \end{minted}
+In this implementation the \textbf{zero check} is avoided to prevent unnecessary \textbf{branching}. Since the logarithm of zero is undefined, it is safe and coherent to leave it undefined behavior. After all these considerations, this function is able to compile in just $\sim{10}$ instructions, which is 3x faster than optimized standard log2 implementations\textsuperscript{\cite{libc_log2}}.
 
-\section{Bellman-Ford Algorithm}
-
-\section{Relative Error}
-
-\section{Optimization}
+\section{Parallelization}
 % parallelization (either of the bellman-ford or of the 2 formulas (6 logs in parallel))
 
 \begin{thebibliography}{9}
 
+\bibitem{agner2024}
+Agner Fog, \textit{Instruction Tables: Lists of instruction latencies, throughputs and micro-operation breakdowns}, 2024. Available at: \url{https://www.agner.org/optimize/instruction_tables.pdf}.
+\bibitem{bithacks}
+Sean Eron Anderson, \textit{Bit Twiddling Hacks}, 2005. Available at: \url{https://graphics.stanford.edu/~seander/bithacks.html}.
+\bibitem{libc_log2}
+GNU C Library, \textit{log2}, 2023. Available at: \url{https://github.com/bminor/glibc/blob/master/sysdeps/ieee754/dbl-64/e_log2.c}.
 
 \end{thebibliography}
 

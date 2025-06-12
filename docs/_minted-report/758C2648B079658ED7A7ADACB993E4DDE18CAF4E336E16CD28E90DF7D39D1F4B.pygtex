@@ -1,0 +1,8 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{normalize}\PYG{p}{(}\PYG{k+kt}{uint64\PYGZus{}t}\PYG{+w}{ }\PYG{n}{value}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{uint64\PYGZus{}t}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{mantissa}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{uint8\PYGZus{}t}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{n}{exponent}\PYG{p}{)}
+\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{k+kt}{uint8\PYGZus{}t}\PYG{+w}{ }\PYG{n}{leading\PYGZus{}zeros}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{\PYGZus{}\PYGZus{}builtin\PYGZus{}clzll}\PYG{p}{(}\PYG{n}{value}\PYG{p}{);}
+\PYG{+w}{  }\PYG{n}{exponent}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{63}\PYG{+w}{ }\PYG{o}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{leading\PYGZus{}zeros}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{mantissa}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{value}\PYG{+w}{ }\PYG{o}{\PYGZlt{}\PYGZlt{}}\PYG{+w}{ }\PYG{n}{leading\PYGZus{}zeros}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

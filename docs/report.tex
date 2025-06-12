@@ -7,12 +7,12 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric}
-
-\usepackage{siunitx}
 \usepackage{xcolor}
 \definecolor{DollarColor}{RGB}{107, 128, 104}
 \definecolor{EuroColor}{RGB}{93, 126, 167}
 \definecolor{BitcoinColor}{RGB}{247, 147, 26}
+\usepackage{minted}
+\usepackage{siunitx}
 \usepackage{booktabs, array, tabularx}
 \usepackage[linesnumbered,ruled,vlined]{algorithm2e}
 \usepackage{hyperref}
@@ -23,6 +23,8 @@
 \author{Claudio Raimondi}
 \date{\today}
 \maketitle
+
+//TODO properly refer to the reader as "we" or "I". not both
 
 \begin{abstract}
 Triangular arbitrage offers opportunities to exploit price inefficiencies between three currency pairs. While several algorithms exist for triangular arbitrage detection, their computational efficiency and accuracy can vary. In this report, I present a straight forward method that combines logarithmic properties with numerical representation techniques to efficiently detect arbitrage opportunities.
@@ -132,15 +134,12 @@ As of now, we have only considered the \textbf{forward direction} of the triangu
 Once the formula is derived, the algorithm is just a matter of applying the two inequalities. From a first analysis, it seems that the only difference between the forward and reverse inequalities is their direction. However, we have to account for the \textbf{spread}, which is the difference between the bid and ask prices. This means that we have to consider the \textbf{ask} price for the forward direction and the \textbf{bid} price for the reverse direction.
 
 \subsection{The choice of the base}
-Up to this point, we have considered the base $b$ of the logarithm to be arbitrary.
-But in reality things are more complicated:
+Up to this point, we have considered the base $b$ of the logarithm to be arbitrary. But in practice, we have to choose the one that best fits our needs.
 \begin{itemize}
-    \item A larger base $b$ will result in a smaller logarithm, which can lead to an increase of precision\textsuperscript{\cite{floating-point-precision}}.
-    \item $\log_{2}$ is often faster to compute on most hardware, thanks to bitwise operations\textsuperscript{\cite{log2-advantage}}.
+    \item $\log_{2}$ matches the binary representation of floating-point numbers.
     \item $\log_{10}$ allows for a simplification of the formula: $\log_{10}(10) = 1$.
 \end{itemize}
-
-//TODO argument the choice of the base2
+In this implementation, we choose $\log_{2}$. This decision is motivated by \textbf{efficiency} and \textbf{precision}. In fact, since floating-point numbers are naturally represented in base 2, we can compute the logarithm with fast bit-shifts and with zero precision loss. Additionally, the simplification of the formula that comes with $\log_{10}$ is not necessary, as we can precompute it.
 
 \subsection{Precomputation}
 Assuming exponents change very rarely, we can use an optimistic approach and \textbf{precompute} the entire right side of the inequality, storing it in a constant variable, raising an exception or even updating the precomputed constant only when the exponents change.
@@ -175,8 +174,17 @@ rewriting the powers of two as bitshifts:
 \end{equation}
 
 
+\subsection{Log2}
+//TODO actual log2 implementation
 
-% if i have log2(x) + log2(y) + log2(z) i can have each log2() function return a combination of mantissa + exponent. so that each log2() is mantissa * 2^exponent?
+\begin{minted}{c}
+void normalize(uint64_t value, uint64_t &mantissa, uint8_t &exponent)
+{
+  uint8_t leading_zeros = __builtin_clzll(value);
+  exponent = 63 - leading_zeros;
+  mantissa = value << leading_zeros;
+}
+\end{minted}
 
 \section{Bellman-Ford Algorithm}
 
@@ -187,8 +195,6 @@ rewriting the powers of two as bitshifts:
 
 \begin{thebibliography}{9}
 
-\bibitem{floating-point-precision}
-\bibitem{log2-advantage}
 
 \end{thebibliography}
 

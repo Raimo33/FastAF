@@ -40,7 +40,7 @@ The process to exploit triangular arbitrage opportunities involves 3 generic ste
 For all three steps, the \textbf{speed} and \textbf{accuracy} of the algorithm are paramount. All the efforts become vain if somebody else collets, manipulates, and executes the arbitrage opportunity before you do.
 On this report, I will focus on the \textbf{second step}---\textit{data manipulation}---, which is the most short-lived. The other two steps rely on external factors, such as networks and exchange APIs.
 
-\section{Representation}
+\section{Visualization}
 To visualize triangular arbitrage, we can represent it as a \textbf{directed graph} (more precisely a clique), where each node represents a currency and each edge represents an exchange rate.
 
 \begin{center}
@@ -173,43 +173,29 @@ The \textbf{table size} directly influences the precision of the fractional part
 \end{tabular}
 \caption{Trade-offs between memory usage and precision for various table sizes}
 \end{table}
-Considering that modern day CPUs have L1 cache sizes of 32 KB or more, a lookup table with 1024 entries is a good compromise between precision and memory usage. Unfortunately, this brings down the step size from $0.000000015$ to $0.000068$, or a maximum error of $0.000068 \div 2 = 0.000034$, which corresponds to a relative error of $2^{0.000034} - 1 \approx 2.4 \cdot 10^{-5} = 0.0024\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error.
+
+Considering that modern day CPUs have \textbf{L1 cache} sizes of 32 KB or more, a lookup table with 1024 entries is a good compromise between precision and memory usage. Unfortunately, this brings down the step size from $0.000000015$ to $0.000068$, or a maximum error of $0.000068 \div 2 = 0.000034$, which corresponds to a relative error of $2^{0.000034} - 1 \approx 2.4 \cdot 10^{-5} = 0.0024\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error.
 
 \newpage
-\begin{minted}{cpp}
-template <uint8_t IntegerBits, uint8_t FractionalBits>
-constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::log2(const uint64_t value) noexcept
+\begin{minted}[fontsize=\footnotesize, xleftmargin=1em, linenos=false]{cpp}
+template <uint8_t IntBits, uint8_t FracBits = 32 - IntBits>
+constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(const uint64_t value)
 {
+  static constexpr uint32_t TABLE_BITS = std::min(10, FracBits); //2^10 = 1024 entries
+  static constexpr uint32_t TABLE_SIZE = 1 << TABLE_BITS;
+  static constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
+  static constexpr uint32_t MASK = TABLE_SIZE - 1;
+
+  static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = precomputeLog2Table<TABLE_SIZE>();
+
   const uint32_t integer_part = 63 - __builtin_clzll(value);
-
-  constexpr uint32_t TABLE_BITS = std::min(10U, FractionalBits); //2^10 = 1024 entries
-  constexpr uint32_t TABLE_SIZE = 1U << TABLE_BITS;
-  constexpr int32_t  SCALE = 1U << FractionalBits;
-  constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
-  constexpr uint32_t MASK = TABLE_SIZE - 1;
-
-  static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = []()
-  {
-    std::array<uint32_t, TABLE_SIZE> table{};
-
-    for (uint32_t i = 0; i < TABLE_SIZE; ++i)
-    {
-      const double x = static_cast<double>(i) / TABLE_SIZE;
-      const double log2_val = std::log2(1.0 + x);
-      table[i] = (log2_val * SCALE + 0.5);
-    }
-
-    return table;
-  }();
-
   const uint32_t mantissa_shift = 63 - integer_part;
   const uint64_t shifted = value << mantissa_shift;
   const uint32_t table_index = (shifted >> SHIFT_AMOUNT) & MASK;
+  const uint32_t frac_part = log2_table[table_index];
 
-  const uint32_t fractional_part = log2_table[table_index];
-  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FractionalBits) + static_cast<int32_t>(fractional_part);
-
-  return FixedPoint<IntegerBits, FractionalBits>::fromRaw(raw_value);
+  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FracBits) + frac_part;
+  return FixedPoint<IntBits, FracBits>::fromRaw(raw_value);
 }
 \end{minted}
 In this implementation the \textbf{zero check} is avoided to prevent unnecessary \textbf{branching}. Since the logarithm of zero is undefined, it is safe and coherent to leave it undefined behavior. After all these considerations, this function is able to compile in just $\sim{10}$ instructions, which is 3x faster than optimized standard log2 implementations\textsuperscript{\cite{libc_log2}}.

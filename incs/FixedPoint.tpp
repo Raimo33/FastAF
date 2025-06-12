@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:34                                                 
-last edited: 2025-06-12 19:33:34                                                
+last edited: 2025-06-12 20:22:52                                                
 
 ================================================================================*/
 
@@ -280,13 +280,10 @@ inline constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits,
 template <uint8_t IntegerBits, uint8_t FractionalBits>
 constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, FractionalBits>::log2(const uint64_t value) noexcept
 {
-  const uint32_t integer_part = 63 - __builtin_clzll(value);
-
-  constexpr uint32_t TABLE_BITS = std::min(10U, FractionalBits); //2^10 = 1024 entries
-  constexpr uint32_t TABLE_SIZE = 1U << TABLE_BITS;
-  constexpr int32_t  SCALE = 1U << FractionalBits;
-  constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
-  constexpr uint32_t MASK = TABLE_SIZE - 1;
+  static constexpr uint32_t TABLE_BITS = std::min(10, FracBits); //2^10 = 1024 entries
+  static constexpr uint32_t TABLE_SIZE = 1 << TABLE_BITS;
+  static constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
+  static constexpr uint32_t MASK = TABLE_SIZE - 1;
 
   static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = []()
   {
@@ -298,18 +295,17 @@ constexpr FixedPoint<IntegerBits, FractionalBits> FixedPoint<IntegerBits, Fracti
       const double log2_val = std::log2(1.0 + x);
       table[i] = (log2_val * SCALE + 0.5);
     }
-
     return table;
   }();
 
+  const uint32_t integer_part = 63 - __builtin_clzll(value);
   const uint32_t mantissa_shift = 63 - integer_part;
   const uint64_t shifted = value << mantissa_shift;
   const uint32_t table_index = (shifted >> SHIFT_AMOUNT) & MASK;
+  const uint32_t frac_part = log2_table[table_index];
 
-  const uint32_t fractional_part = log2_table[table_index];
-  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FractionalBits) + static_cast<int32_t>(fractional_part);
-
-  return FixedPoint<IntegerBits, FractionalBits>::fromRaw(raw_value);
+  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FracBits) + frac_part;
+  return FixedPoint<IntBits, FracBits>::fromRaw(raw_value);
 }
 
 template <uint8_t IntegerBits, uint8_t FractionalBits>

@@ -375,33 +375,42 @@ inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::fr
 template <uint8_t IntBits, uint8_t FracBits>
 constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(const uint64_t value) noexcept
 {
-  static constexpr uint32_t TABLE_BITS = std::min(8u, static_cast<uint32_t>(FracBits));
-  static constexpr uint32_t TABLE_SIZE = 1 << TABLE_BITS;
-  static constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
-  static constexpr uint32_t MASK = TABLE_SIZE - 1;
+  static constexpr uint8_t  TABLE_BITS = std::min(8u, static_cast<uint32_t>(FracBits));
+  static constexpr uint16_t TABLE_SIZE = 1 << TABLE_BITS;
+  static constexpr uint8_t  SHIFT_AMOUNT = 63 - TABLE_BITS;
+  static constexpr uint16_t MASK = TABLE_SIZE - 1;
+  static constexpr uint8_t  FRAC_BITS_FOR_INTERP = FracBits - TABLE_BITS;
+  static constexpr uint8_t  FRAC_SHIFT_OFFSET = SHIFT_AMOUNT - FRAC_BITS_FOR_INTERP;
+  static constexpr uint16_t FRAC_MASK = (1u << FRAC_BITS_FOR_INTERP) - 1;
 
-  alignas(CACHELINE_SIZE) static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = []()
+  alignas(CACHELINE_SIZE) static constexpr std::array<uint32_t, TABLE_SIZE + 1> log2_table = []()
   {
-    std::array<uint32_t, TABLE_SIZE> table{};
+    std::array<uint32_t, TABLE_SIZE + 1> table{};
 
-    for (uint32_t i = 0; i < TABLE_SIZE; ++i)
+    for (uint32_t i = 0; i <= TABLE_SIZE; ++i)
     {
       const double x = static_cast<double>(i) / TABLE_SIZE;
       const double log2_val = std::log2(1.0 + x);
-      table[i] = (log2_val * SCALE + 0.5);
+      table[i] = static_cast<uint32_t>(log2_val * SCALE + 0.5);
     }
     return table;
   }();
 
-  const uint64_t leading_zeroes = __builtin_clzll(value);
+  const uint32_t leading_zeroes = __builtin_clzll(value);
   const uint32_t integer_part = 63 - leading_zeroes;
   const uint64_t shifted = value << leading_zeroes;
   const uint32_t table_index = (shifted >> SHIFT_AMOUNT) & MASK;
-  const uint32_t frac_part = log2_table[table_index];
+  const uint32_t frac_offset = (shifted >> FRAC_SHIFT_OFFSET) & FRAC_MASK;
+  const uint32_t val0 = log2_table[table_index];
+  const uint32_t val1 = log2_table[table_index + 1];
+  const uint64_t diff = static_cast<uint64_t>(val1) - val0;
+  const uint64_t prod = diff * frac_offset;
+  const uint32_t interp = val0 + static_cast<uint32_t>(prod >> FRAC_BITS_FOR_INTERP);
 
-  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FracBits) + frac_part;
+  const int32_t raw_value = (static_cast<int32_t>(integer_part) << FracBits) + static_cast<int32_t>(interp);
   return FixedPoint<IntBits, FracBits>::fromRaw(raw_value);
 }
+
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline std::ostream &operator<<(std::ostream &os, const FixedPoint<IntBits, FracBits> &fp) noexcept

@@ -20,6 +20,7 @@ last edited: 2025-06-13 22:02:52
 
 //TODO remove
 #include <iostream>
+#include <iomanip>
 
 COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pairs, std::array<SharedSnapshot<TopOfBook>, 3> &book_snapshots, std::array<SharedSnapshot<PairInfo>, 3> &info_snapshots) noexcept :
   _info_snapshots(info_snapshots),
@@ -105,22 +106,22 @@ HOT void ArbitrageScanner::checkArbitrage(void) noexcept
     (_book2.bid_price > 0) & (_book2.ask_price > 0)
   );
 
-  using fixed_type = FixedPoint<8, 24>;
+  using fixed_type = FixedPoint<8, 24>; //max representable value: 64 + 64 - 0 = 128;
   static constexpr auto log2 = [](const int64_t price) -> fixed_type {
     return fixed_type::log2(static_cast<uint64_t>(price));
   };
 
+  std::cout << std::fixed << std::setprecision(10);
 
-  std::cout << "bid_price0: " << _book0.bid_price << ", ask_price0: " << _book0.ask_price << '\n';
-  std::cout << "log2(bid_price0): " << log2(_book0.bid_price) << ", log2(ask_price0): " << log2(_book0.ask_price) << '\n';
-  std::cout << "bid_price1: " << _book1.bid_price << ", ask_price1: " << _book1.ask_price << '\n';
-  std::cout << "log2(bid_price1): " << log2(_book1.bid_price) << ", log2(ask_price1): " << log2(_book1.ask_price) << '\n';
-  std::cout << "bid_price2: " << _book2.bid_price << ", ask_price2: " << _book2.ask_price << '\n';
-  std::cout << "log2(bid_price2): " << log2(_book2.bid_price) << ", log2(ask_price2): " << log2(_book2.ask_price) << '\n';
+  std::cout << "value: " << _book0.bid_price << ", expected: " << std::log2(_book0.bid_price) << ", fixed: " << log2(_book0.bid_price) << std::endl;
+  std::cout << "value: " << _book0.ask_price << ", expected: " << std::log2(_book0.ask_price) << ", fixed: " << log2(_book0.ask_price) << std::endl;
+  std::cout << "value: " << _book1.bid_price << ", expected: " << std::log2(_book1.bid_price) << ", fixed: " << log2(_book1.bid_price) << std::endl;
+  std::cout << "value: " << _book1.ask_price << ", expected: " << std::log2(_book1.ask_price) << ", fixed: " << log2(_book1.ask_price) << std::endl;
+  std::cout << "value: " << _book2.ask_price << ", expected: " << std::log2(_book2.ask_price) << ", fixed: " << log2(_book2.ask_price) << std::endl;
+  std::cout << "value: " << _book2.bid_price << ", expected: " << std::log2(_book2.bid_price) << ", fixed: " << log2(_book2.bid_price) << std::endl;
 
   exit(1);
 
   // const fixed_type forward_path  = log2(_book0.bid_price) + log2(_book1.bid_price) - log2(_book2.ask_price);
   // const fixed_type backward_path = log2(_book0.ask_price) + log2(_book1.ask_price) - log2(_book2.bid_price);
-//
 }

@@ -180,7 +180,8 @@ The \textbf{table size} directly influences the precision of the fractional part
 \caption{Trade-offs between memory usage and precision for various table sizes}
 \end{table}
 
-A lookup table with \textbf{256 entries} is the best compromise between precision and memory usage. In fact, this brings down the step size from $0.00000006$ to $0.00026$, or a maximum error of $0.00026 / 2 = 0.00013$, which corresponds to a relative error of $2^{0.00013} - 1 \approx 9 \cdot 10^{-5} = 0.009\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error. Considering that modern CPUs have \textbf{L1 caches} of at least 32 KB, a 1 KB lookup table will most likely always be present in the cache, making the lookup operation extremely fast
+//TODO account for the fact that values are summed (error propagates) -> linear interpolation
+A lookup table with \textbf{256 entries} is the best compromise between precision and memory usage. In fact, this brings down the step size from $0.00000006$ to $0.00026$, or a maximum error of $0.00026 / 2 = 0.00013$, which corresponds to a relative error of $2^{0.00013} - 1 \approx 9 \cdot 10^{-5} = 0.009\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Considering that modern CPUs have \textbf{L1 caches} of at least 32 KB, a 1 KB lookup table will most likely always be present in the cache, making the lookup operation extremely fast
 
 \newpage
 \begin{minted}[fontsize=\footnotesize, xleftmargin=1em, linenos=false]{cpp}

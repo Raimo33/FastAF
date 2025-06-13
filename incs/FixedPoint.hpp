@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:33                                                 
-last edited: 2025-06-13 18:01:03                                                
+last edited: 2025-06-13 21:01:01                                                
 
 ================================================================================*/
 
@@ -26,7 +26,6 @@ class FixedPoint
     explicit constexpr FixedPoint(const double floating_point) noexcept;
 
     constexpr FixedPoint(const FixedPoint &other) noexcept;
-    constexpr FixedPoint(const FixedPoint &&other) noexcept;
     inline constexpr FixedPoint &operator=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator=(const int32_t integer) noexcept;
     inline constexpr FixedPoint &operator=(const double floating_point) noexcept;
@@ -36,37 +35,51 @@ class FixedPoint
 
     inline constexpr FixedPoint operator+(const FixedPoint &other) const noexcept;
     inline constexpr FixedPoint operator+(const int32_t value) const noexcept;
+    inline constexpr FixedPoint operator+(const double value) const noexcept;
     inline constexpr FixedPoint operator-(const FixedPoint &other) const noexcept;
     inline constexpr FixedPoint operator-(const int32_t value) const noexcept;
+    inline constexpr FixedPoint operator-(const double value) const noexcept;
     inline constexpr FixedPoint operator*(const FixedPoint &other) const noexcept;
     inline constexpr FixedPoint operator*(const int32_t value) const noexcept;
+    inline constexpr FixedPoint operator*(const double value) const noexcept;
     inline constexpr FixedPoint operator/(const FixedPoint &other) const noexcept;
     inline constexpr FixedPoint operator/(const int32_t value) const noexcept;
+    inline constexpr FixedPoint operator/(const double value) const noexcept;
 
     inline constexpr FixedPoint operator-(void) const noexcept;
     inline constexpr FixedPoint operator+(void) const noexcept;
 
     inline constexpr FixedPoint &operator+=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator+=(const int32_t value) noexcept;
+    inline constexpr FixedPoint &operator+=(const double value) noexcept;
     inline constexpr FixedPoint &operator-=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator-=(const int32_t value) noexcept;
+    inline constexpr FixedPoint &operator-=(const double value) noexcept;
     inline constexpr FixedPoint &operator*=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator*=(const int32_t value) noexcept;
+    inline constexpr FixedPoint &operator*=(const double value) noexcept;
     inline constexpr FixedPoint &operator/=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator/=(const int32_t value) noexcept;
+    inline constexpr FixedPoint &operator/=(const double value) noexcept;
 
     inline constexpr bool operator==(const FixedPoint &other) const noexcept;
     inline constexpr bool operator==(const int32_t value) const noexcept;
+    inline constexpr bool operator==(const double value) const noexcept;
     inline constexpr bool operator!=(const FixedPoint &other) const noexcept;
     inline constexpr bool operator!=(const int32_t value) const noexcept;
+    inline constexpr bool operator!=(const double value) const noexcept;
     inline constexpr bool operator<(const FixedPoint &other) const noexcept;
     inline constexpr bool operator<(const int32_t value) const noexcept;
+    inline constexpr bool operator<(const double value) const noexcept;
     inline constexpr bool operator<=(const FixedPoint &other) const noexcept;
     inline constexpr bool operator<=(const int32_t value) const noexcept;
+    inline constexpr bool operator<=(const double value) const noexcept;
     inline constexpr bool operator>(const FixedPoint &other) const noexcept;
     inline constexpr bool operator>(const int32_t value) const noexcept;
+    inline constexpr bool operator>(const double value) const noexcept;
     inline constexpr bool operator>=(const FixedPoint &other) const noexcept;
     inline constexpr bool operator>=(const int32_t value) const noexcept;
+    inline constexpr bool operator>=(const double value) const noexcept;
 
     constexpr int32_t raw_value(void) const noexcept;
     constexpr int32_t integer_part(void) const noexcept;

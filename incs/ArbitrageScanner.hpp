@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-13 18:01:03                                                
+last edited: 2025-06-13 21:01:01                                                
 
 ================================================================================*/
 
@@ -35,14 +35,12 @@ class ArbitrageScanner
     ArbitrageScanner(ArbitrageScanner &&) = delete;
     ArbitrageScanner &operator=(const ArbitrageScanner &) = delete;
 
-    static constexpr float THRESHOLD_PERCENTAGE = 0.1f;
+    static constexpr float THRESHOLD_PERCENTAGE = 0.3f;
 
     void getPairInfo(void);
     void precomputeConstants(void);
     void initBooks(void);
     void checkArbitrage(void) noexcept;
-
-    using fixed_type = FixedPoint<6>;
 
     std::array<SharedSnapshot<PairInfo>, 3> &_info_snapshots;
 
@@ -61,7 +59,7 @@ class ArbitrageScanner
     int8_t _combined_price_exponent;
     int8_t _combined_qty_exponent;
 
-    fixed_type _forward_rhs;
-    fixed_type _backward_rhs;
+    float _forward_rhs;
+    float _backward_rhs;
     //TODO array of order-execution streams
 };

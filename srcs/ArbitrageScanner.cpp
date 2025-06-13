@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-13 18:01:03                                                
+last edited: 2025-06-13 21:01:01                                                
 
 ================================================================================*/
 
@@ -17,6 +17,9 @@ last edited: 2025-06-13 18:01:03
 #include <thread>
 #include <algorithm>
 #include <numeric>
+
+//TODO remove
+#include <iostream>
 
 COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pairs, std::array<SharedSnapshot<TopOfBook>, 3> &book_snapshots, std::array<SharedSnapshot<PairInfo>, 3> &info_snapshots) noexcept :
   _info_snapshots(info_snapshots),
@@ -63,7 +66,7 @@ COLD void ArbitrageScanner::getPairInfo(void)
       _combined_price_exponent -= info.price_exponent;
     else
       _combined_price_exponent += info.price_exponent;
-
+    
     _combined_qty_exponent += info.qty_exponent;
   }
 }
@@ -74,7 +77,7 @@ COLD void ArbitrageScanner::precomputeConstants(void)
   static constexpr double TAU = THRESHOLD_PERCENTAGE / 100.0;
   static constexpr double LOG_THRESHOLD = std::log2(1.0 + TAU);
 
-  const double base_log_rhs = (-_combined_price_exponent* LOG_10);
+  const double base_log_rhs = (-_combined_price_exponent * LOG_10);
   _forward_rhs  = base_log_rhs + LOG_THRESHOLD;
   _backward_rhs = base_log_rhs - LOG_THRESHOLD;
 }
@@ -94,8 +97,6 @@ COLD void ArbitrageScanner::initBooks(void)
   );
 }
 
-//TODO remove
-#include <iostream>
 HOT void ArbitrageScanner::checkArbitrage(void) noexcept
 {
   fast_assert(
@@ -104,18 +105,16 @@ HOT void ArbitrageScanner::checkArbitrage(void) noexcept
     (_book2.bid_price > 0) & (_book2.ask_price > 0)
   );
 
+  using fixed_type = FixedPoint<8, 24>;
   static constexpr auto log2 = [](const int64_t price) -> fixed_type {
     return fixed_type::log2(static_cast<uint64_t>(price));
   };
 
-  const fixed_type forward_path  = log2(_book0.ask_price) + log2(_book1.ask_price) - log2(_book2.bid_price);
-  const fixed_type backward_path = log2(_book2.bid_price) + log2(_book1.bid_price) - log2(_book0.ask_price);
+  const fixed_type forward_path  = log2(_book0.bid_price) + log2(_book1.bid_price) - log2(_book2.ask_price);
+  const fixed_type backward_path = log2(_book0.ask_price) + log2(_book1.ask_price) - log2(_book2.bid_price);
 
-  if (forward_path > _forward_rhs) [[unlikely]]
-    std::cout << "ARBITRAGE!, timestamp: " << std::chrono::system_clock::now().time_since_epoch().count() << "\n";
-  else if (backward_path < _backward_rhs) [[unlikely]]
-    std::cout << "ARBITRAGE!, timestamp: " << std::chrono::system_clock::now().time_since_epoch().count() << "\n";
-
-  //TODO check max available quantity for arbitrage (take the correct quantity leg on the inverted pair)
-  //TODO execute arbitrage
+  if (forward_path > _forward_rhs)
+    std::cout << "forw arb found. time: " << std::chrono::system_clock::now().time_since_epoch().count() << std::endl;
+  else if (backward_path < _backward_rhs)
+    std::cout << "back arb found. time: " << std::chrono::system_clock::now().time_since_epoch().count() << std::endl;
 }

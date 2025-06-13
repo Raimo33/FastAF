@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:34                                                 
-last edited: 2025-06-13 18:01:03                                                
+last edited: 2025-06-13 21:01:01                                                
 
 ================================================================================*/
 
@@ -33,15 +33,9 @@ constexpr FixedPoint<IntBits, FracBits>::FixedPoint(const FixedPoint &other) noe
   : _value(other._value) {}
 
 template <uint8_t IntBits, uint8_t FracBits>
-constexpr FixedPoint<IntBits, FracBits>::FixedPoint(const FixedPoint &&other) noexcept
-  : _value(other._value) {}
-
-template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator=(const FixedPoint &other) noexcept
 {
-  if (this != &other)
-    _value = other._value;
-
+  _value = other._value;
   return *this;
 }
 
@@ -74,38 +68,56 @@ inline constexpr FixedPoint<IntBits, FracBits>::operator double(void) const noex
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator+(const FixedPoint &other) const noexcept
 {
-  return FixedPoint(_value + other._value);
+  return FixedPoint::fromRaw(_value + other._value);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator+(const int32_t value) const noexcept
 {
-  return FixedPoint(_value + (value << FracBits));
+  return FixedPoint::fromRaw(_value + (value << FracBits));
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator+(const double value) const noexcept
+{
+  return FixedPoint::fromRaw(_value + static_cast<int32_t>(value * SCALE));
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator-(const FixedPoint &other) const noexcept
 {
-  return FixedPoint(_value - other._value);
+  return FixedPoint::fromRaw(_value - other._value);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator-(const int32_t value) const noexcept
 {
-  return FixedPoint(_value - (value << FracBits));
+  return FixedPoint::fromRaw(_value - (value << FracBits));
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator-(const double value) const noexcept
+{
+  return FixedPoint::fromRaw(_value - static_cast<int32_t>(value * SCALE));
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator*(const FixedPoint &other) const noexcept
 {
   const int64_t product = static_cast<int64_t>(_value) * other._value;
-  return FixedPoint(static_cast<int32_t>(product >> FracBits));
+  return FixedPoint::fromRaw(static_cast<int32_t>(product >> FracBits));
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator*(const int32_t value) const noexcept
 {
-  return FixedPoint((_value * value) >> FracBits);
+  return FixedPoint::fromRaw((_value * value) >> FracBits);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator*(const double value) const noexcept
+{
+  return FixedPoint::fromRaw((_value * static_cast<int32_t>(value * SCALE)) >> FracBits);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
@@ -113,13 +125,19 @@ inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::op
 {
   const int64_t numerator = static_cast<int64_t>(_value) << FracBits;
   const int64_t result = numerator / other._value;
-  return FixedPoint(static_cast<int32_t>(result));
+  return FixedPoint::fromRaw(static_cast<int32_t>(result));
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator/(const int32_t value) const noexcept
 {
-  return FixedPoint((_value << FracBits) / value);
+  return FixedPoint::fromRaw((_value << FracBits) / value);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator/(const double value) const noexcept
+{
+  return FixedPoint::fromRaw((_value << FracBits) / static_cast<int32_t>(value * SCALE));
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
@@ -149,6 +167,13 @@ inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::o
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator+=(const double value) noexcept
+{
+  _value += static_cast<int32_t>(value * SCALE);
+  return *this;
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator-=(const FixedPoint &other) noexcept
 {
   _value -= other._value;
@@ -159,6 +184,13 @@ template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator-=(const int32_t value) noexcept
 {
   _value -= (value << FracBits);
+  return *this;
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator-=(const double value) noexcept
+{
+  _value -= static_cast<int32_t>(value * SCALE);
   return *this;
 }
 
@@ -178,6 +210,13 @@ inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::o
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator*=(const double value) noexcept
+{
+  _value = (_value * static_cast<int32_t>(value * SCALE)) >> FracBits;
+  return *this;
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator/=(const FixedPoint &other) noexcept
 {
   const int64_t numerator = static_cast<int64_t>(_value) << FracBits;
@@ -189,6 +228,13 @@ template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator/=(const int32_t value) noexcept
 {
   _value = (_value << FracBits) / value;
+  return *this;
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator/=(const double value) noexcept
+{
+  _value = (_value << FracBits) / static_cast<int32_t>(value * SCALE);
   return *this;
 }
 
@@ -205,6 +251,12 @@ inline constexpr bool FixedPoint<IntBits, FracBits>::operator==(const int32_t va
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr bool FixedPoint<IntBits, FracBits>::operator==(const double value) const noexcept
+{
+  return _value == static_cast<int32_t>(value * SCALE);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr bool FixedPoint<IntBits, FracBits>::operator!=(const FixedPoint &other) const noexcept
 {
   return _value != other._value;
@@ -214,6 +266,12 @@ template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr bool FixedPoint<IntBits, FracBits>::operator!=(const int32_t value) const noexcept
 {
   return _value != (value << FracBits);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr bool FixedPoint<IntBits, FracBits>::operator!=(const double value) const noexcept
+{
+  return _value != static_cast<int32_t>(value * SCALE);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
@@ -229,6 +287,12 @@ inline constexpr bool FixedPoint<IntBits, FracBits>::operator<(const int32_t val
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr bool FixedPoint<IntBits, FracBits>::operator<(const double value) const noexcept
+{
+  return _value < static_cast<int32_t>(value * SCALE);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr bool FixedPoint<IntBits, FracBits>::operator<=(const FixedPoint &other) const noexcept
 {
   return _value <= other._value;
@@ -238,6 +302,12 @@ template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr bool FixedPoint<IntBits, FracBits>::operator<=(const int32_t value) const noexcept
 {
   return _value <= (value << FracBits);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr bool FixedPoint<IntBits, FracBits>::operator<=(const double value) const noexcept
+{
+  return _value <= static_cast<int32_t>(value * SCALE);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
@@ -253,6 +323,12 @@ inline constexpr bool FixedPoint<IntBits, FracBits>::operator>(const int32_t val
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr bool FixedPoint<IntBits, FracBits>::operator>(const double value) const noexcept
+{
+  return _value > static_cast<int32_t>(value * SCALE);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr bool FixedPoint<IntBits, FracBits>::operator>=(const FixedPoint &other) const noexcept
 {
   return _value >= other._value;
@@ -262,6 +338,12 @@ template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr bool FixedPoint<IntBits, FracBits>::operator>=(const int32_t value) const noexcept
 {
   return _value >= (value << FracBits);
+}
+
+template <uint8_t IntBits, uint8_t FracBits>
+inline constexpr bool FixedPoint<IntBits, FracBits>::operator>=(const double value) const noexcept
+{
+  return _value >= static_cast<int32_t>(value * SCALE);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>

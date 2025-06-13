@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-10 18:45:29                                                
+last edited: 2025-06-13 18:01:03                                                
 
 ================================================================================*/
 
@@ -18,7 +18,7 @@ last edited: 2025-06-10 18:45:29
 int main(int argc, char **argv)
 {
   if (argc != 4)
-    utils::throw_error("Usage: " + std::string(argv[0]) + " <base-quote> <base-quote> <base-quote>");
+    utils::throw_error("Usage: " + std::string(argv[0]) + " <base/quote> <base/quote> <base/quote>");
 
   const char *api_key = std::getenv("BINANCE_API_KEY");
   if (!api_key)
@@ -29,6 +29,10 @@ int main(int argc, char **argv)
     utils::parse_pair(argv[2]),
     utils::parse_pair(argv[3])
   };
+
+  const bool correct_cycle = (pairs[0].second == pairs[1].first) & (pairs[1].second == pairs[2].second) & (pairs[2].first == pairs[0].first);
+  if (!correct_cycle)
+    utils::throw_error("Wrong cycle. Expected: A/B, B/C, A/C");
 
   std::array<SharedSnapshot<TopOfBook>, 3> book_snapshots;
   std::array<SharedSnapshot<PairInfo>, 3> info_snapshots;

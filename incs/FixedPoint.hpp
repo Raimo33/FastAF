@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:33                                                 
-last edited: 2025-06-12 19:33:34                                                
+last edited: 2025-06-13 18:01:03                                                
 
 ================================================================================*/
 
@@ -15,10 +15,10 @@ last edited: 2025-06-12 19:33:34
 #include <array>
 #include <ostream>
 
-template <uint8_t IntegerBits, uint8_t FractionalBits = (32 - IntegerBits)>
+template <uint8_t IntBits, uint8_t FracBits = (32 - IntBits)>
 class FixedPoint
 {
-  static_assert(IntegerBits + FractionalBits <= 32, "Total bits must not exceed 32");
+  static_assert(IntBits + FracBits <= 32, "Total bits must not exceed 32");
 
   public:
     constexpr FixedPoint(void) noexcept;
@@ -42,6 +42,10 @@ class FixedPoint
     inline constexpr FixedPoint operator*(const int32_t value) const noexcept;
     inline constexpr FixedPoint operator/(const FixedPoint &other) const noexcept;
     inline constexpr FixedPoint operator/(const int32_t value) const noexcept;
+
+    inline constexpr FixedPoint operator-(void) const noexcept;
+    inline constexpr FixedPoint operator+(void) const noexcept;
+
     inline constexpr FixedPoint &operator+=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator+=(const int32_t value) noexcept;
     inline constexpr FixedPoint &operator-=(const FixedPoint &other) noexcept;
@@ -50,6 +54,7 @@ class FixedPoint
     inline constexpr FixedPoint &operator*=(const int32_t value) noexcept;
     inline constexpr FixedPoint &operator/=(const FixedPoint &other) noexcept;
     inline constexpr FixedPoint &operator/=(const int32_t value) noexcept;
+
     inline constexpr bool operator==(const FixedPoint &other) const noexcept;
     inline constexpr bool operator==(const int32_t value) const noexcept;
     inline constexpr bool operator!=(const FixedPoint &other) const noexcept;
@@ -70,20 +75,19 @@ class FixedPoint
     static constexpr FixedPoint fromRaw(const int32_t raw_value) noexcept;
 
     static constexpr FixedPoint log2(const uint64_t value) noexcept;
-    static constexpr std::array<FixedPoint, 4> log2(const std::array<uint64_t, 4> &values) noexcept;
-    static constexpr std::array<FixedPoint, 8> log2(const std::array<uint64_t, 8> &values) noexcept;
 
-    //TODO add4
-    //TODO add8
+    //add4
+    //add8
+    //add16
 
   private:
     int32_t _value;
-    static constexpr int32_t SCALE = 1u << FractionalBits;
+    static constexpr int32_t SCALE = 1u << FracBits;
     static constexpr int32_t FRACTION_MASK = SCALE - 1;
-    static constexpr int32_t MAX_INTEGER_VALUE = 1u << IntegerBits;
+    static constexpr int32_t MAX_INTEGER_VALUE = 1u << IntBits;
 };
 
-template <uint8_t IntegerBits, uint8_t FractionalBits>
-inline std::ostream &operator<<(std::ostream &os, const FixedPoint<IntegerBits, FractionalBits> &value) noexcept;
+template <uint8_t IntBits, uint8_t FracBits>
+inline std::ostream &operator<<(std::ostream &os, const FixedPoint<IntBits, FracBits> &value) noexcept;
 
 #include "FixedPoint.tpp"

@@ -172,32 +172,31 @@ The \textbf{table size} directly influences the precision of the fractional part
 \hline
 \textbf{TABLE\_SIZE} & \textbf{Memory Usage} & \textbf{Horizontal Step Size} & \textbf{Vertical Step Size (approx.)} \\
 \hline
+256     & 1 KB    & $0.00391$   & $\sim0.00026$ \\
 512     & 2 KB    & $0.00195$   & $\sim0.00013$ \\
 1024    & 4 KB    & $0.00098$   & $\sim0.000068$ \\
-4096    & 16 KB   & $0.00024$   & $\sim0.000017$ \\
-8192    & 32 KB   & $0.00012$   & $\sim0.0000085$ \\
 \hline
 \end{tabular}
 \caption{Trade-offs between memory usage and precision for various table sizes}
 \end{table}
 
-Considering that modern day CPUs have \textbf{L1 cache} sizes of 32 KB or more, a lookup table with 1024 entries is a good compromise between precision and memory usage. Unfortunately, this brings down the step size from $0.000000015$ to $0.000068$, or a maximum error of $0.000068 / 2 = 0.000034$, which corresponds to a relative error of $2^{0.000034} - 1 \approx 2.4 \cdot 10^{-5} = 0.0024\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error.
+A lookup table with \textbf{256 entries} is the best compromise between precision and memory usage. In fact, this brings down the step size from $0.000000015$ to $0.00026$, or a maximum error of $0.00026 / 2 = 0.00013$, which corresponds to a relative error of $2^{0.00013} - 1 \approx 9 \cdot 10^{-5} = 0.009\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error. Considering that modern CPUs have \textbf{L1 caches} of at least 32 KB, a 1 KB lookup table will most likely always be present in the cache, making the lookup operation extremely fast
 
 \newpage
 \begin{minted}[fontsize=\footnotesize, xleftmargin=1em, linenos=false]{cpp}
 template <uint8_t IntBits, uint8_t FracBits = 32 - IntBits>
 constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(const uint64_t value)
 {
-  static constexpr uint32_t TABLE_BITS = std::min(10, FracBits); //2^10 = 1024 entries
+  static constexpr uint32_t TABLE_BITS = std::min(8, FracBits); //2^8 = 256 entries
   static constexpr uint32_t TABLE_SIZE = 1 << TABLE_BITS;
   static constexpr uint32_t SHIFT_AMOUNT = 63 - TABLE_BITS;
   static constexpr uint32_t MASK = TABLE_SIZE - 1;
 
   static constexpr std::array<uint32_t, TABLE_SIZE> log2_table = precomputeLog2Table<TABLE_SIZE>();
 
-  const uint32_t integer_part = 63 - __builtin_clzll(value);
-  const uint32_t mantissa_shift = 63 - integer_part;
-  const uint64_t shifted = value << mantissa_shift;
+  const uint64_t leading_zeroes = __builtin_clzll(value);
+  const uint32_t integer_part = 63 - leading_zeroes;
+  const uint64_t shifted = value << leading_zeroes;
   const uint32_t table_index = (shifted >> SHIFT_AMOUNT) & MASK;
   const uint32_t frac_part = log2_table[table_index];
 

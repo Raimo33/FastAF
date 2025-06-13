@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-10 20:46:08                                                
+last edited: 2025-06-13 18:01:03                                                
 
 ================================================================================*/
 
@@ -84,6 +84,7 @@ COLD void MarketDataClient::onSSLHandshake(const beast::error_code &ec)
     }));
 
   const std::string path = "/ws/" + _pair.first + _pair.second + "@bestBidAsk";
+  //TODO: detect and throw exception if pair feed does not exist
 
   _ws_stream.async_handshake(HOSTNAME, path,
     [this](const beast::error_code &ec) {

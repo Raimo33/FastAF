@@ -12,3 +12,5 @@ FastAF
 *.fls
 *.synctex.gz
 docs/_minted-report
+*.data
+*.old

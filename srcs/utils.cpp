@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-08 13:31:29                                                
+last edited: 2025-06-13 18:01:03                                                
 
 ================================================================================*/
 
@@ -49,7 +49,7 @@ COLD NEVER_INLINE void throw_error(std::string_view message)
 
 COLD std::pair<std::string, std::string> parse_pair(std::string_view pair)
 {
-  const size_t pos = pair.find('-');
+  const size_t pos = pair.find('/');
   
   std::string base(pair.substr(0, pos));
   std::string quote(pair.substr(pos + 1));

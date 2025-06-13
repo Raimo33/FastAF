@@ -105,31 +105,38 @@ As of now, we have only considered the \textbf{forward direction} of the triangu
     \frac{1}{R_{1}} \cdot \frac{1}{R_{2}} \cdot \frac{1}{R_{3}} > 1
 \end{equation}
 \begin{equation}
-    \frac{1}{m_1 \cdot 10^{e_1}} \cdot \frac{1}{m_2 \cdot 10^{e_2}} \cdot \frac{1}{m_3 \cdot 10^{e_3}} > 1
-\end{equation}
-\begin{equation}
-    \frac{1}{m_1 \cdot m_2 \cdot m_3 \cdot 10^{e_1 + e_2 + e_3}} > 1
-\end{equation}
-\begin{equation}
-    m_1 \cdot m_2 \cdot m_3 \cdot 10^{e_1 + e_2 + e_3} < 1
-\end{equation}
-\begin{equation}
-    m_1 \cdot m_2 \cdot m_3 < \frac{1}{10^{e_1 + e_2 + e_3}}
-\end{equation}
-\begin{equation}
-    m_1 \cdot m_2 \cdot m_3 < 10^{-(e_1 + e_2 + e_3)}
-\end{equation}
-\begin{equation}
-    \log_b(m_1 \cdot m_2 \cdot m_3) < \log_b(10^{-(e_1 + e_2 + e_3)})
+    {R_{1} \cdot R_{2} \cdot R_{3}} < 1
 \end{equation}
 \begin{equation}
     \log_b(m_1) + \log_b(m_2) + \log_b(m_3) < -(e_1 + e_2 + e_3) \cdot \log_b(10)
 \end{equation}
-
-\section{Algorithm}
+As expected, the only difference is the direction of the inequality. This means that at any time there always exists a profitable arbitrage opportunity, either in the forward or reverse direction (unless the market is perfectly efficient). However in practice, not every opportunity is worth exploiting, wether due to \textbf{fees} or the \textbf{spread}\textsuperscript{\cite{spread}}.
 
 \subsection{The Spread Problem}
-Once the formula is derived, the algorithm is just a matter of applying the two inequalities. From a first analysis, it seems that the only difference between the forward and reverse inequalities is their direction. However, we have to account for the \textbf{spread}, which is the difference between the bid and ask prices. This means that we have to consider the \textbf{ask} price for the forward direction and the \textbf{bid} price for the reverse direction.
+At first, the two inequalities seem to differ only in the direction of the inequality. However, in practice, the two inequalities are not equivalent. In fact, due to the \textbf{spread}, we need to use different exchange rate values based on the direction of the trade. Specifically, we need to use the \textbf{ask prices} for the forward direction and the \textbf{bid prices} for the reverse direction. So the two inequalities become:
+\setcounter{equation}{0}
+\begin{equation}
+    \log_b(m_{\text{ask}_1}) + \log_b(m_{\text{ask}_2}) + \log_b(m_{\text{ask}_3}) > 
+    -\left(e_1 + e_2 + e_3\right) \cdot \log_b(10)
+\end{equation}
+\begin{equation}
+    \log_b(m_{\text{bid}_1}) + \log_b(m_{\text{bid}_2}) + \log_b(m_{\text{bid}_3}) < 
+    -\left(e_1 + e_2 + e_3\right) \cdot \log_b(10)
+\end{equation}
+
+\subsection{Threshold}
+Often times, to avoid false positives and very short-lived arbitrage opportunities, we need to set a profitability \textbf{threshold}. This threshold is a percentage value that represents the minimum profit we want to achieve from the arbitrage opportunity and allows us to filter out the noise.
+Let $\tau$ be the threshold as a decimal (e.g., $0.001$ for $0.1\%$). Then the adjusted arbitrage inequalities become:
+\begin{equation}
+    \log_b(m_{\text{ask},1}) + \log_b(m_{\text{ask},2}) + \log_b(m_{\text{ask},3}) >
+    -\left(e_1 + e_2 + e_3\right) \cdot \log_b(10) + \log_b(1 + \tau)
+\end{equation}
+\begin{equation}
+    \log_b(m_{\text{bid},1}) + \log_b(m_{\text{bid},2}) + \log_b(m_{\text{bid},3}) <
+    -\left(e_1 + e_2 + e_3\right) \cdot \log_b(10) - \log_b(1 + \tau)
+\end{equation}
+
+\section{Algorithm}
 
 \subsection{The choice of the base}
 Up to this point, we have considered the base $b$ of the logarithm to be arbitrary. But in practice, we have to choose the one that best fits our needs.
@@ -154,7 +161,7 @@ Since the logarithm produces a real number, I will use a \textbf{fixed point} re
     \item Q6.26 as 32 bits $\rightarrow 2^{-26} = 0.000000015$ step size.
     \item Q6.58 as 64 bits $\rightarrow 2^{-58} = 0.0000000000000000035$ step size.
 \end{itemize}
-Out of the three, the second option offers the best balance between precision and size. For instance, a maximum error of $\frac{\text{step\_size}}{2} = \frac{0.000000015}{2} = 0.0000000075$ in the logarithmic value corresponds to a relative error of $2^{0.0000000075} - 1 \approx 5 \cdot 10^{-9} = 0.0000005\%$ in the original value, which is more than enough precision for our needs.
+Out of the three, the second option offers the best balance between precision and size. For instance, a maximum error of $\text{step\_size} / 2 = 0.000000015 / 2 = 0.0000000075$ in the logarithmic value corresponds to a relative error of $2^{0.0000000075} - 1 \approx 5 \cdot 10^{-9} = 0.0000005\%$ in the original value, which is more than enough precision for our needs.
 
 \subsection{Log2}
 The actual implementation of the \texttt{log2} function relies on the \textbf{clz} (count leading zeros) intrinsic for the integer part, and a \textbf{lookup table} for the fractional part. The table is generated by sampling the logarithm function at regular intervals in the range $[0, 1]$.
@@ -174,7 +181,7 @@ The \textbf{table size} directly influences the precision of the fractional part
 \caption{Trade-offs between memory usage and precision for various table sizes}
 \end{table}
 
-Considering that modern day CPUs have \textbf{L1 cache} sizes of 32 KB or more, a lookup table with 1024 entries is a good compromise between precision and memory usage. Unfortunately, this brings down the step size from $0.000000015$ to $0.000068$, or a maximum error of $0.000068 \div 2 = 0.000034$, which corresponds to a relative error of $2^{0.000034} - 1 \approx 2.4 \cdot 10^{-5} = 0.0024\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error.
+Considering that modern day CPUs have \textbf{L1 cache} sizes of 32 KB or more, a lookup table with 1024 entries is a good compromise between precision and memory usage. Unfortunately, this brings down the step size from $0.000000015$ to $0.000068$, or a maximum error of $0.000068 / 2 = 0.000034$, which corresponds to a relative error of $2^{0.000034} - 1 \approx 2.4 \cdot 10^{-5} = 0.0024\%$ in the original value. This is a perfectly reasonable trade-off, considering that most arbitrage opportunities are above the $0.1\%$ threshold. Furthermore, the error does not accumulate, since the additions that would follow in our formula are all performed on the fixed point numbers discussed earlier, which have a much greater margin of error.
 
 \newpage
 \begin{minted}[fontsize=\footnotesize, xleftmargin=1em, linenos=false]{cpp}
@@ -205,6 +212,8 @@ In this implementation the \textbf{zero check} is avoided to prevent unnecessary
 
 \begin{thebibliography}{9}
 
+\bibitem{spread}
+Wikipedia, \textit{Bid–ask spread}, Available at: \url{https://en.wikipedia.org/wiki/Bid%E2%80%93ask_spread}.
 \bibitem{agner2024}
 Agner Fog, \textit{Instruction Tables: Lists of instruction latencies, throughputs and micro-operation breakdowns}, 2024. Available at: \url{https://www.agner.org/optimize/instruction_tables.pdf}.
 \bibitem{bithacks}

@@ -15,16 +15,6 @@ last edited: 2025-06-10 22:44:06
 #include <utility>
 #include <thread>
 
-/*
-
-(p1 * 10^e1) * (p2 * 10^e2) * (p3 * 10^e3) > 1 + (THRESHOLD_PERCENTAGE / 100.0)
-log2(p1) + log2(p2) + log2(p3) > log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) - (e1 + e2 + e3) * log2(10)
-
-(1/(p1 * 10^e1)) * (1/(p2 * 10^e2)) * (1/(p3 * 10^e3)) > 1 + (THRESHOLD_PERCENTAGE / 100.0)
-log2(p1) + log2(p2) + log2(p3) < -log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) -(e1 + e2 + e3) * log2(10)
-
-*/
-
 COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pairs, std::array<SharedSnapshot<TopOfBook>, 3> &book_snapshots, std::array<SharedSnapshot<PairInfo>, 3> &info_snapshots) noexcept :
   _book_snapshots(book_snapshots),
   _info_snapshots(info_snapshots),
@@ -66,14 +56,12 @@ COLD void ArbitrageScanner::getPairInfo(void)
     combined_exponent += info.price_exponent;
   }
 
-  static constexpr double LOG_THRESHOLD = std::log2(1 + (THRESHOLD_PERCENTAGE / 100.0));
   static constexpr double LOG_10 = std::log2(10.0);
-
-  //log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) - (e1 + e2 + e3) * log2(10)
-  _forward_threshold = LOG_THRESHOLD -combined_exponent * LOG_10;
-
-  //-log2(1 + (THRESHOLD_PERCENTAGE / 100.0)) -(e1 + e2 + e3) * log2(10)
-  _backwards_threshold = -LOG_THRESHOLD -combined_exponent * LOG_10;
+  static constexpr double TAU = THRESHOLD_PERCENTAGE / 100.0;
+  static constexpr double LOG_THRESHOLD = std::log2(1.0 + TAU);
+  const double base_log_rhs = (-combined_exponent * LOG_10);
+  _forward_rhs  = base_log_rhs + LOG_THRESHOLD;
+  _backward_rhs = base_log_rhs - LOG_THRESHOLD;
 }
 
 COLD void ArbitrageScanner::initBooks(void)
@@ -104,23 +92,21 @@ HOT void ArbitrageScanner::checkArbitrage(const std::array<TopOfBook, 3> &books)
     (tob2.bid_price > 0) & (tob2.ask_price > 0)
   );
 
-  static constexpr auto log2 = [](const int64_t price) -> FixedPoint<8,24> {
-    return FixedPoint<8,24>::log2(static_cast<uint64_t>(price));
+  static constexpr auto log2 = [](const int64_t price) -> fixed_type {
+    return fixed_type::log2(static_cast<uint64_t>(price));
   };
 
-  //TODO study permutations
-  const FixedPoint<8,24> forward_path = log2(tob0.bid_price) + log2(tob1.ask_price) + log2(tob2.bid_price);
-  const FixedPoint<8,24> backwards_path = log2(tob0.ask_price) + log2(tob1.bid_price) + log2(tob2.ask_price);
+  //TODO FIX: the pair streams can be in whichever order
+  const fixed_type forward_path  = log2(tob0.ask_price) + log2(tob1.ask_price) + log2(tob2.ask_price);
+  const fixed_type backward_path = log2(tob0.bid_price) + log2(tob1.bid_price) + log2(tob2.ask_price);
 
-  if (sum > _forward_threshold)
+  if (forward_path > _forward_rhs)
   {
-    std::cout << "Arbitrage opportunity detected (forward): " << std::endl;
-    std::cout << " sum: " << static_cast<double>(sum) << ", threshold: " << static_cast<double>(_forward_threshold) << std::endl;
+    std::cout << "Forward arbitrage detected: " << forward_path << " > " << _forward_rhs << "\n";
   }
-  else if (sum < _backwards_threshold)
+  else if (backward_path > _backward_rhs)
   {
-    std::cout << "Arbitrage opportunity detected (backwards): " << std::endl;
-    std::cout << " sum: " << static_cast<double>(sum) << ", threshold: " << static_cast<double>(_backwards_threshold) << std::endl;
+    std::cout << "Backward arbitrage detected: " << backward_path << " > " << _backward_rhs << "\n";
   }
 
   //check max available quantity for arbitrage

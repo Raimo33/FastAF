@@ -41,6 +41,8 @@ class ArbitrageScanner
     void initBooks(void);
     void checkArbitrage(const std::array<TopOfBook, 3> &books);
 
+    using fixed_type = FixedPoint<6>;
+
     std::array<SharedSnapshot<TopOfBook>, 3> &_book_snapshots;
     std::array<SharedSnapshot<PairInfo>, 3> &_info_snapshots;
     std::array<TopOfBook, 3> _books;
@@ -48,6 +50,6 @@ class ArbitrageScanner
     std::array<currency_pair, 3> _pairs; //TODO replace with the array of order-execution streams
     std::array<int8_t, 3> _price_exponents;
     std::array<int8_t, 3> _qty_exponents;
-    FixedPoint<8,24> _forward_threshold;
-    FixedPoint<8,24> _backwards_threshold;
+    fixed_type _forward_rhs;
+    fixed_type _backward_rhs;
 };

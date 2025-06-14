@@ -15,7 +15,7 @@
 \usepackage{siunitx}
 \usepackage{booktabs, array, tabularx}
 \usepackage[linesnumbered,ruled,vlined]{algorithm2e}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 
 \begin{document}
 
@@ -40,7 +40,7 @@ The process to exploit triangular arbitrage opportunities involves 3 generic ste
 For all three steps, the \textbf{speed} and \textbf{accuracy} of the algorithm are paramount. All the efforts become vain if somebody else collets, manipulates, and executes the arbitrage opportunity before you do.
 On this report, I will focus on the \textbf{second step} -- \textit{data manipulation} --, which is the most short-lived. The other two steps rely on external factors, such as networks and exchange APIs.
 
-\section{Visualization}
+\subsection{Visualization}
 To visualize triangular arbitrage, we can represent it as a \textbf{directed graph} (more precisely a clique), where each node represents a currency and each edge represents an exchange rate.
 
 \begin{center}

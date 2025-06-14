@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-13 22:02:52                                                
+last edited: 2025-06-14 19:36:05                                                
 
 ================================================================================*/
 
@@ -35,7 +35,7 @@ class ArbitrageScanner
     ArbitrageScanner(ArbitrageScanner &&) = delete;
     ArbitrageScanner &operator=(const ArbitrageScanner &) = delete;
 
-    static constexpr float THRESHOLD_PERCENTAGE = 0.0f;
+    static constexpr float THRESHOLD_PERCENTAGE = 0.1f;
 
     void getPairInfo(void);
     void precomputeConstants(void);
@@ -62,5 +62,4 @@ class ArbitrageScanner
     float _neutral_point;
     float _forward_threshold;
     float _backward_threshold;
-    //TODO array of order-execution streams
 };

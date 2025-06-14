@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:33                                                 
-last edited: 2025-06-13 21:01:01                                                
+last edited: 2025-06-14 19:36:05                                                
 
 ================================================================================*/
 
@@ -89,9 +89,14 @@ class FixedPoint
 
     static constexpr FixedPoint log2(const uint64_t value) noexcept;
 
+    /* ----- SIMD - SWAR ------ */
+
     //add4
     //add8
     //add16
+
+    //log2_4
+    //log2_8
 
   private:
     int32_t _value;

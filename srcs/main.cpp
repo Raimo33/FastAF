@@ -5,15 +5,13 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 13:31:29                                                 
-last edited: 2025-06-13 18:01:03                                                
+last edited: 2025-06-14 19:36:05                                                
 
 ================================================================================*/
 
 #include "MarketDataClient.hpp"
 #include "ArbitrageScanner.hpp"
 #include "utils.hpp"
-
-//TODO set scheduling policy and priorities
 
 int main(int argc, char **argv)
 {

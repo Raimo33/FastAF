@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-03-08 18:21:38                                                 
-last edited: 2025-06-10 18:45:29                                                
+last edited: 2025-06-14 19:36:05                                                
 
 ================================================================================*/
 
@@ -29,8 +29,8 @@ HOT static inline void fast_assert(const bool condition)
   __asm__ __volatile__(
     "test %[cond], %[cond]\n\t"
 
-    "mov $1f, %%rax\n\t"
-    "mov $2f, %%rdx\n\t"
+    "lea 1f(%%rip), %%rax\n\t"
+    "lea 2f(%%rip), %%rdx\n\t"
 
     "cmovz %%rdx, %%rax\n\t" 
     "jmp *%%rax\n\t"

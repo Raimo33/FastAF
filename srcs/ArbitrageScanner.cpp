@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-08 18:58:46                                                 
-last edited: 2025-06-13 22:02:52                                                
+last edited: 2025-06-14 19:36:05                                                
 
 ================================================================================*/
 
@@ -17,10 +17,6 @@ last edited: 2025-06-13 22:02:52
 #include <thread>
 #include <algorithm>
 #include <numeric>
-
-//TODO remove
-#include <iostream>
-#include <iomanip>
 
 COLD ArbitrageScanner::ArbitrageScanner(const std::array<currency_pair, 3> &pairs, std::array<SharedSnapshot<TopOfBook>, 3> &book_snapshots, std::array<SharedSnapshot<PairInfo>, 3> &info_snapshots) noexcept :
   _info_snapshots(info_snapshots),
@@ -111,17 +107,10 @@ HOT void ArbitrageScanner::checkArbitrage(void) noexcept
     return fixed_type::log2(static_cast<uint64_t>(price));
   };
 
-  std::cout << std::fixed << std::setprecision(10);
+  const fixed_type forward_path  = log2(_book0.bid_price) + log2(_book1.bid_price) - log2(_book2.ask_price);
+  const fixed_type backward_path = log2(_book0.ask_price) + log2(_book1.ask_price) - log2(_book2.bid_price);
 
-  std::cout << "value: " << _book0.bid_price << ", expected: " << std::log2(_book0.bid_price) << ", fixed: " << log2(_book0.bid_price) << std::endl;
-  std::cout << "value: " << _book0.ask_price << ", expected: " << std::log2(_book0.ask_price) << ", fixed: " << log2(_book0.ask_price) << std::endl;
-  std::cout << "value: " << _book1.bid_price << ", expected: " << std::log2(_book1.bid_price) << ", fixed: " << log2(_book1.bid_price) << std::endl;
-  std::cout << "value: " << _book1.ask_price << ", expected: " << std::log2(_book1.ask_price) << ", fixed: " << log2(_book1.ask_price) << std::endl;
-  std::cout << "value: " << _book2.ask_price << ", expected: " << std::log2(_book2.ask_price) << ", fixed: " << log2(_book2.ask_price) << std::endl;
-  std::cout << "value: " << _book2.bid_price << ", expected: " << std::log2(_book2.bid_price) << ", fixed: " << log2(_book2.bid_price) << std::endl;
-
-  exit(1);
-
-  // const fixed_type forward_path  = log2(_book0.bid_price) + log2(_book1.bid_price) - log2(_book2.ask_price);
-  // const fixed_type backward_path = log2(_book0.ask_price) + log2(_book1.ask_price) - log2(_book2.bid_price);
+  const bool is_arb = (forward_path > _forward_threshold) | (backward_path < _backward_threshold);
+  if (is_arb) [[unlikely]]
+    write(STDOUT_FILENO, "Arbitrage opportunity detected!\n", 33);
 }

@@ -5,7 +5,7 @@ Creator: Claudio Raimondi
 Email: claudio.raimondi@pm.me                                                   
 
 created at: 2025-06-09 16:10:34                                                 
-last edited: 2025-06-13 21:01:01                                                
+last edited: 2025-06-14 19:36:05                                                
 
 ================================================================================*/
 
@@ -66,7 +66,7 @@ inline constexpr FixedPoint<IntBits, FracBits>::operator double(void) const noex
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
-inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator+(const FixedPoint &other) const noexcept
+HOT inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator+(const FixedPoint &other) const noexcept
 {
   return FixedPoint::fromRaw(_value + other._value);
 }
@@ -111,7 +111,7 @@ inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::op
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator*(const int32_t value) const noexcept
 {
-  return FixedPoint::fromRaw((_value * value) >> FracBits);
+  return FixedPoint::fromRaw(_value * value);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
@@ -131,7 +131,7 @@ inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::op
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::operator/(const int32_t value) const noexcept
 {
-  return FixedPoint::fromRaw((_value << FracBits) / value);
+  return FixedPoint::fromRaw(_value / value);
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
@@ -205,7 +205,7 @@ inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::o
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator*=(const int32_t value) noexcept
 {
-  _value = (_value * value) >> FracBits;
+  _value *= value;
   return *this;
 }
 
@@ -227,7 +227,7 @@ inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::o
 template <uint8_t IntBits, uint8_t FracBits>
 inline constexpr FixedPoint<IntBits, FracBits> &FixedPoint<IntBits, FracBits>::operator/=(const int32_t value) noexcept
 {
-  _value = (_value << FracBits) / value;
+  _value /= value;
   return *this;
 }
 
@@ -287,7 +287,7 @@ inline constexpr bool FixedPoint<IntBits, FracBits>::operator<(const int32_t val
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
-inline constexpr bool FixedPoint<IntBits, FracBits>::operator<(const double value) const noexcept
+HOT inline constexpr bool FixedPoint<IntBits, FracBits>::operator<(const double value) const noexcept
 {
   return _value < static_cast<int32_t>(value * SCALE);
 }
@@ -323,7 +323,7 @@ inline constexpr bool FixedPoint<IntBits, FracBits>::operator>(const int32_t val
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
-inline constexpr bool FixedPoint<IntBits, FracBits>::operator>(const double value) const noexcept
+HOT inline constexpr bool FixedPoint<IntBits, FracBits>::operator>(const double value) const noexcept
 {
   return _value > static_cast<int32_t>(value * SCALE);
 }
@@ -365,7 +365,7 @@ inline constexpr int32_t FixedPoint<IntBits, FracBits>::fractional_part(void) co
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
-inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::fromRaw(const int32_t raw_value) noexcept
+HOT ALWAYS_INLINE inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::fromRaw(const int32_t raw_value) noexcept
 {
   FixedPoint result;
   result._value = raw_value;
@@ -373,7 +373,7 @@ inline constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::fr
 }
 
 template <uint8_t IntBits, uint8_t FracBits>
-constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(const uint64_t value) noexcept
+HOT constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(const uint64_t value) noexcept
 {
   static constexpr uint8_t  TABLE_BITS = std::min(8u, static_cast<uint32_t>(FracBits));
   static constexpr uint16_t TABLE_SIZE = 1 << TABLE_BITS;
@@ -383,7 +383,7 @@ constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(cons
   static constexpr uint8_t  FRAC_SHIFT_OFFSET = SHIFT_AMOUNT - FRAC_BITS_FOR_INTERP;
   static constexpr uint16_t FRAC_MASK = (1u << FRAC_BITS_FOR_INTERP) - 1;
 
-  alignas(CACHELINE_SIZE) static constexpr std::array<uint32_t, TABLE_SIZE + 1> log2_table = []()
+  alignas(CACHELINE_SIZE) static const constinit std::array<uint32_t, TABLE_SIZE + 1> log2_table = []()
   {
     std::array<uint32_t, TABLE_SIZE + 1> table{};
 
@@ -397,9 +397,12 @@ constexpr FixedPoint<IntBits, FracBits> FixedPoint<IntBits, FracBits>::log2(cons
   }();
 
   const uint32_t leading_zeroes = __builtin_clzll(value);
-  const uint32_t integer_part = 63 - leading_zeroes;
   const uint64_t shifted = value << leading_zeroes;
   const uint32_t table_index = (shifted >> SHIFT_AMOUNT) & MASK;
+
+  PREFETCH_R(&log2_table[table_index], 0);
+
+  const uint32_t integer_part = 63 - leading_zeroes;
   const uint32_t frac_offset = (shifted >> FRAC_SHIFT_OFFSET) & FRAC_MASK;
   const uint32_t val0 = log2_table[table_index];
   const uint32_t val1 = log2_table[table_index + 1];

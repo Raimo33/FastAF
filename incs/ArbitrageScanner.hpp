@@ -41,6 +41,7 @@ class ArbitrageScanner
     void precomputeConstants(void);
     void initBooks(void);
     void checkArbitrage(void) noexcept;
+    void printArbitrage(const FixedPoint<8, 24> &forward_path, const FixedPoint<8, 24> &backward_path) noexcept; //TODO REMOVE. just for visualization purposes
 
     std::array<SharedSnapshot<PairInfo>, 3> &_info_snapshots;
 

@@ -63,7 +63,7 @@ COLD void ArbitrageScanner::getPairInfo(void)
       _combined_price_exponent -= info.price_exponent;
     else
       _combined_price_exponent += info.price_exponent;
-    
+
     _combined_qty_exponent += info.qty_exponent;
   }
 }
@@ -110,7 +110,21 @@ HOT void ArbitrageScanner::checkArbitrage(void) noexcept
   const fixed_type forward_path  = log2(_book0.bid_price) + log2(_book1.bid_price) - log2(_book2.ask_price);
   const fixed_type backward_path = log2(_book0.ask_price) + log2(_book1.ask_price) - log2(_book2.bid_price);
 
-  const bool is_arb = (forward_path > _forward_threshold) | (backward_path < _backward_threshold);
-  if (is_arb) [[unlikely]]
-    write(STDOUT_FILENO, "Arbitrage opportunity detected!\n", 33);
+  printArbitrage(forward_path, backward_path);
+}
+
+//TODO REMOVE. just for visualization purposes
+HOT void ArbitrageScanner::printArbitrage(const FixedPoint<8, 24> &forward_path, const FixedPoint<8, 24> &backward_path) noexcept
+{
+  const bool is_arbitrage = (forward_path > _forward_threshold) | (backward_path < _backward_threshold);
+  if (!is_arbitrage)
+    return;
+
+  const FixedPoint<8, 24> forward_diff = forward_path - _neutral_point;
+  const FixedPoint<8, 24> backward_diff = -backward_path + _neutral_point;
+
+  const float percentage = (std::exp2(static_cast<double>(forward_diff)) - 1.0f) * 100.0f;
+  const float backward_percentage = (std::exp2(static_cast<double>(backward_diff)) - 1.0f) * 100.0f;
+
+  printf("Forward Path: %.2f%%, Backward Path: %.2f%%\n", percentage, backward_percentage);
 }

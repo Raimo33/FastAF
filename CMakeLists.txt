@@ -37,12 +37,9 @@ set(COMPILER_FLAGS
   -falign-functions -falign-jumps -falign-labels -falign-loops
   -fcaller-saves -fdefer-pop -fguess-branch-probability
   -fno-plt -fuse-linker-plugin -flto -flto=jobserver
-  -ffunction-sections -fdata-sections
 )
 
 target_compile_options(FastAF PRIVATE ${COMPILER_FLAGS})
-
-target_link_options(FastAF PRIVATE "-Wl,--gc-sections")
 
 set(LIBRARIES
   boost_system
